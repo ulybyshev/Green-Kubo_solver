@@ -54,6 +54,10 @@
 //center    resolution_width(center+-width/2) spectral_function statistical error   width_after_exclude  spectral_function_after_exclude   stat_err_after_exclude
 
 
+//TODO
+//rewrite the output of resolution function width for non-symmetrical error (center, low, high), including separate processing of the case when low=zero
+
+
 #include <stdio.h>
 #include <math.h>
 #include <gsl/gsl_integration.h>
@@ -145,12 +149,12 @@ double kernel (int i, double omega)
     //i is the number of timeslice in array+1, NOT real time
 double kernel(int i, double omega)
 {
-//  if(omega*dNt_2_pre<accuracy)
-  //  return cosh(omega*(dNt_2-(double)i))/(PI*dNt_2_pre);
- // else
     int real_t;
     real_t=points_numbers[i-1];
-    return  (omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*dNt_2_pre)))/(1.0-exp(-2.0*omega*dNt_2_pre));
+    if(omega*dNt_2_pre<accuracy)
+	return cosh(omega*(dNt_2-(double)real_t))/(PI*dNt_2_pre);
+    else
+	return  (omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*dNt_2_pre)))/(1.0-exp(-2.0*omega*dNt_2_pre));
 }
 //kernel at zero omega (to exclude zeros of denominator from the calculation)
 double kernel0(int i)
@@ -504,6 +508,10 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
     count++;  
   }
   fprintf(file_out,"omega_max=%.15le\n",omega_max*(2.0*dNt_2_pre)); fflush(file_out);
+  (*start)=0.0;
+ 
+
+
   //start calculation
   for(omega=omega_max;omega>omega_plot_delta/(2.0*dNt_2_pre);omega-=omega_plot_delta/(2.0*dNt_2_pre))
   {
