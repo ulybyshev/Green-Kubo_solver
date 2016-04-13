@@ -290,15 +290,15 @@ void calculate_Q(gsl_vector* Q, gsl_vector* R, gsl_matrix* S, double center)
   gsl_integration_workspace_free (w1);
   fclose(file_out);
   
-  //Regularization
-  for(i=1;i<=Nt_2;i++)
-    for(j=1;j<=Nt_2;j++){
-      if(i==j)
-      {
-        par_double=lambda*gsl_matrix_get(W, i-1, j-1)+(1.0-lambda) * gsl_matrix_get(S, i-1, j-1);
-        gsl_matrix_set(W,i-1,j-1,par_double);
-      } 
-  }
+  //Regularization 1 tyoe
+//  for(i=1;i<=Nt_2;i++)
+//    for(j=1;j<=Nt_2;j++){
+//      if(i==j)
+//      {
+//        par_double=lambda*gsl_matrix_get(W, i-1, j-1)+(1.0-lambda) * gsl_matrix_get(S, i-1, j-1);
+//        gsl_matrix_set(W,i-1,j-1,par_double);
+//      } 
+//  }
   
   //Save
   file_out=fopen_log("W_matrix.txt","a", center);
@@ -329,10 +329,12 @@ void calculate_Q(gsl_vector* Q, gsl_vector* R, gsl_matrix* S, double center)
 
   gsl_linalg_SV_decomp(Uk,Vk,Wk,workT);
 //    gsl_linalg_SV_decomp_jacobi(Uk,Vk,Wk);
+  
+  //Different regularization type
   double sv0 = gsl_vector_get(Wk,0);
   for(j=1;j<Nt_2;j++){
     par_double = gsl_vector_get(Wk,j);
-    if(par_double < sv0*(1e-16))
+    if(par_double < sv0*lambda)
       par_double = 0;
     gsl_vector_set(Wk,j,par_double);
   }
