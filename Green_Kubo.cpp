@@ -47,12 +47,16 @@
 //i_{N_{valid}}  
 //(sorted ascending, contact term in correlator is under number 0, so valid timeslices start from 1 and go till Nt)
 
+//output - all dimensional quantities in units of temperature
+
 //output - delta functions
 //omega(in units of temperature)    function   function_after_exclude
 
 //output rho
-//center    resolution_width(center+-width/2) spectral_function statistical error   width_after_exclude  spectral_function_after_exclude   stat_err_after_exclude
+// center(as in was in input)  resolution_width(as it was in D calculation)  center(Maximum)  width((start-stop)/2, start and stop are at half-peak)  rho  rho_stat_err
 
+//output rho_exclude - the same for spectral functions with exclusion at zero 
+// center(as in was in input)  resolution_width(as it was in D calculation)  center(Maximum)  width((start-stop)/2, start and stop are at half-peak)  rho  rho_stat_err  start stop
 
 //TODO
 //rewrite the output of resolution function width for non-symmetrical error (center, low, high), including separate processing of the case when low=zero
@@ -66,15 +70,11 @@
 #include <gsl/gsl_linalg.h>
 #include <stdlib.h>
 
-#include "errors.h"
-
 #define PI 3.1415926
 
 #define SKIP_COMMENT_LINE(file) { while(getc(file)!='\n'); }
 #define SKIP_REMAINING_CHARS(file) SKIP_COMMENT_LINE(file)
 #define SKIP_OPTION(file) { SKIP_COMMENT_LINE(file) SKIP_REMAINING_CHARS(file) }
-
-#include "errors.h"
 
 void parse_option(FILE* file, const char* pattern, void* ptr)
 {
@@ -156,14 +156,14 @@ double kernel(int i, double omega)
     int real_t;
     real_t=points_numbers[i-1];
     if(omega*dNt_2_pre<accuracy)
-	return cosh(omega*(dNt_2-(double)real_t))/(M_PI*dNt_2_pre);
+	return cosh(omega*(dNt_2-(double)real_t))/(PI*dNt_2_pre);
     else
-	return  (omega/M_PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*dNt_2_pre)))/(1.0-exp(-2.0*omega*dNt_2_pre));
+	return  (omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*dNt_2_pre)))/(1.0-exp(-2.0*omega*dNt_2_pre));
 }
 //kernel at zero omega (to exclude zeros of denominator from the calculation)
 double kernel0(int i)
 {
-  return 1.0/(M_PI*dNt_2_pre);
+  return 1.0/(PI*dNt_2_pre);
 }
 
 
@@ -266,120 +266,183 @@ void calculate_Q(gsl_vector* Q, gsl_vector* R, gsl_matrix* S, double center)
 
   gsl_matrix * W;
 
- 
-//CALCULATION W matrix
-//using numericasl integration
+  gsl_matrix* W_1;
+  gsl_vector* Wk;//W eigenvalues
+
+//integration to obtain W matrix
  W=gsl_matrix_alloc(Nt_2, Nt_2);
+
+ file_out=fopen_log("W_calc_control.txt","a", center);
+ 
 {
-  //Integration
-  file_out=fopen_log("W_calc_control.txt","a", center);
   gsl_integration_workspace * w1  = gsl_integration_workspace_alloc (N_int_steps);
+ 
   gsl_function F;
   F.function = &W_int;
   w_parameters buffer;
   buffer.omega_center=center;  
   for(i=1;i<=Nt_2;i++)
-    for(j=1;j<=Nt_2;j++){
-      buffer.i=i;
-      buffer.j=j;
-      F.params = &buffer;
-      gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
-      gsl_matrix_set(W,i-1,j-1,int_result);
-      fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n", i,j, int_result, int_error); fflush(file_out);
-    }
+  for(j=1;j<=Nt_2;j++)
+  {
+    buffer.i=i;
+    buffer.j=j;
+    F.params = &buffer;
+    gsl_integration_qagiu (&F, 0.0, accuracy, accuracy, N_int_steps, w1, &int_result, &int_error);
+    gsl_matrix_set(W,i-1,j-1,int_result);
+    fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n", i,j, int_result, int_error); fflush(file_out);
+  }
   gsl_integration_workspace_free (w1);
-  fclose(file_out);
   
-  //Regularization 1 tyoe
-//  for(i=1;i<=Nt_2;i++)
-//    for(j=1;j<=Nt_2;j++){
-//      if(i==j)
-//      {
-//        par_double=lambda*gsl_matrix_get(W, i-1, j-1)+(1.0-lambda) * gsl_matrix_get(S, i-1, j-1);
-//        gsl_matrix_set(W,i-1,j-1,par_double);
-//      } 
-//  }
-  
-  //Save
-  file_out=fopen_log("W_matrix.txt","a", center);
-  for(i=1;i<=Nt_2;i++){
-    for(j=1;j<=Nt_2;j++)
-      fprintf(file_out,"%.5le\t", gsl_matrix_get(W,i-1,j-1)); fflush(file_out); 
-    fprintf(file_out,"\n"); fflush(file_out); 
+  //regularization
+  for(i=1;i<=Nt_2;i++)
+  for(j=1;j<=Nt_2;j++)
+  {
+      if(i==j)
+      {
+        par_double=gsl_matrix_get(W, i-1, j-1);
+        par_double=(1.0-lambda) * gsl_matrix_get(S, i-1, j-1)+ lambda*par_double;
+        gsl_matrix_set(W,i-1,j-1,par_double);
+      } 
   }
-  fclose(file_out);
+
+
+
 }
- 
-//CALCULATION Q = W^(-1) R
-//SVD decomposition is used  
-{
-  
-  gsl_matrix * Uk, *Vk;
-  gsl_vector * workT;
-  gsl_vector* Wk;//W eigenvalues
+  fclose(file_out);
 
-  Uk=gsl_matrix_calloc(Nt_2,Nt_2);
-  Vk=gsl_matrix_calloc(Nt_2,Nt_2);
-  Wk=gsl_vector_calloc(Nt_2);
-  workT=gsl_vector_calloc(Nt_2);
-
-  for(i=0;i<Nt_2;i++)
-    for(j=0;j<Nt_2;j++)
-      gsl_matrix_set(Uk, j,i, gsl_matrix_get(W, i,j));
-
-  gsl_linalg_SV_decomp(Uk,Vk,Wk,workT);
-//    gsl_linalg_SV_decomp_jacobi(Uk,Vk,Wk);
-  
-  //Different regularization type
-  double sv0 = gsl_vector_get(Wk,0);
-  for(j=1;j<Nt_2;j++){
-    par_double = gsl_vector_get(Wk,j);
-    if(par_double < sv0*lambda)
-      par_double = 0;
-    gsl_vector_set(Wk,j,par_double);
+  file_out=fopen_log("W_matrix.txt","a", center);
+  for(i=1;i<=Nt_2;i++)
+  {
+    for(j=1;j<=Nt_2;j++)
+    {
+     fprintf(file_out,"%.5le\t", gsl_matrix_get(W,i-1,j-1)); fflush(file_out); 
+    }
+     fprintf(file_out,"\n"); fflush(file_out); 
   }
+  fclose(file_out);
+//calculation of inverse W matrix (stored in W_1) 
+//SVD decomposition is used
   
-  gsl_linalg_SV_solve(Uk,Vk,Wk,R,Q);
+    W_1=gsl_matrix_calloc(Nt_2,Nt_2);
+    Wk=gsl_vector_calloc(Nt_2);
+{
+    gsl_matrix * Uk, *Vk;
+    gsl_vector * workT;
 
-  //Check W^(-1)
-  double sum=0.0;
-  for(i=0;i<Nt_2;i++){
-    par_double = 0.0;
-    for(j=0;j<Nt_2;j++)
-      par_double += gsl_matrix_get(W,i,j)*gsl_vector_get(Q, j);
-    sum+= fabs(par_double / gsl_vector_get(R, i) - 1.0);
-  }    
-  std::cout<<std::scientific<<"Discrepancy: "<<sum;
+    Uk=gsl_matrix_calloc(Nt_2,Nt_2);
+    Vk=gsl_matrix_calloc(Nt_2,Nt_2);
+    workT=gsl_vector_calloc(Nt_2);
     
-  file_out=fopen_log("Q_vector.txt","a", center);
-  //Normalize Q = Q/(R*Q)
-  double norma=0.0;
-  for(i=0;i<Nt_2;i++)
-    norma +=  gsl_vector_get(Q, i)*gsl_vector_get(R, i);
-  fprintf(file_out, "norma_old=%.15le\n", norma);fflush(file_out);
+    for(i=0;i<Nt_2;i++)
+    for(j=0;j<Nt_2;j++)
+    {
+      par_double=gsl_matrix_get(W, i,j);
+      gsl_matrix_set(Uk, j,i, par_double);
+    }
+    
+    gsl_linalg_SV_decomp(Uk,Vk,Wk,workT);
+    
+    file_out=fopen_log("W_1_matrix.txt","a", center);//output of inverse kernel matrix
+    for(i=0;i<Nt_2;i++)
+    {
+      for(k=0;k<Nt_2;k++)
+      {
+        par_double=0.0;
+        for(j=0;j<Nt_2;j++)
+        {
+          par_double+=gsl_matrix_get(Vk,k,j)*gsl_matrix_get(Uk,i,j)*(1.0/gsl_vector_get(Wk,j));
+        }
+        gsl_matrix_set(W_1, i,k, par_double);
+        fprintf(file_out,"%.5le\t",gsl_matrix_get(W_1, i,k));fflush(file_out);
+      }
+      fprintf(file_out,"\n");fflush(file_out);
+    }
+    fclose(file_out);
+    
+
+    file_out=fopen_log("Wk_vector.txt","a", center);//output of eigenvalues of kernel matrix
+    for(i=0;i<Nt_2;i++)
+    {
+      fprintf(file_out,"%.15le\n",gsl_vector_get(Wk, i));fflush(file_out);
+    }
+    fclose(file_out);
+
+    file_out=fopen_log( "W_inv_control.txt","a", center);//for control - output of K^(-1)*K
+    for(i=0;i<Nt_2;i++)
+    {
+      for(k=0;k<Nt_2;k++)
+      {
+        par_double=0.0;
+        for(j=0;j<Nt_2;j++)
+        {
+          par_double+=gsl_matrix_get(W,i,j)*gsl_matrix_get(W_1,j,k);
+        }
+      fprintf(file_out,"%.5le\t",par_double);fflush(file_out);
+      }
+      fprintf(file_out,"\n");fflush(file_out);
+    }
+    fclose(file_out);
+ }//end of W_1 calculation 
+
+ //vector Q calculation
+  {
+    double norma;
   
-  for(i=0;i<Nt_2;i++){
-    par_double = gsl_vector_get(Q, i);
+  par_double=0.0;
+  for(i=0;i<Nt_2;i++)
+  {
+    for(j=0;j<Nt_2;j++)
+    {
+      par_double+=gsl_vector_get(R, i) * gsl_vector_get(R, j) * gsl_matrix_get(W_1,i,j);
+    }
+  }
+  norma=par_double;
+  for(i=0;i<Nt_2;i++)
+  {
+    par_double=0.0;
+    for(j=0;j<Nt_2;j++)
+    {
+      par_double+= gsl_vector_get(R, j) * gsl_matrix_get(W_1,i,j);
+    }
     gsl_vector_set(Q,i,par_double/norma);
   }
-  
-  par_double = 0.0;
-  for(i=0;i<Nt_2;i++)
-    par_double+=gsl_vector_get(Q, i)*gsl_vector_get(R, i);
-  std::cout<<"    Norm: "<<par_double<<std::endl;
-  fprintf(file_out, "norma_new=%.15le\n", par_double);fflush(file_out);   
-  
-  //Save Q vector
-  for(i=0;i<Nt_2;i++)
-    fprintf(file_out,"%.15le\n",gsl_vector_get(Q, i));fflush(file_out);
-    
-  fclose(file_out); 
-  gsl_vector_free(Wk);
-  gsl_matrix_free(Uk);
-  gsl_matrix_free(Vk);    
-  gsl_vector_free(workT); 
+ 
   }
 
+//vector Q output
+  file_out=fopen_log("Q_vector.txt","a", center);
+
+//normalization
+  par_double=0.0;
+  for(i=0;i<Nt_2;i++)
+  {
+    par_double += gsl_vector_get(Q, i) * gsl_vector_get(R,i);
+  }
+  fprintf(file_out, "norma_old=%.15le\n", par_double);fflush(file_out);
+  
+  for(i=0;i<Nt_2;i++)
+  {
+    gsl_vector_set(Q,i,gsl_vector_get(Q, i)/par_double);
+  }
+  for(i=0;i<Nt_2;i++)
+  {
+     fprintf(file_out,"%.15le\n",gsl_vector_get(Q, i));fflush(file_out);
+  }
+ ////
+  par_double=0.0;
+  for(i=0;i<Nt_2;i++)
+  {
+    par_double += gsl_vector_get(Q, i) * gsl_vector_get(R,i);
+  }
+  fprintf(file_out, "norma_new=%.15le\n", par_double);fflush(file_out);
+
+  fclose(file_out); 
+
+
+
+
+  gsl_matrix_free(W_1);
+  gsl_vector_free(Wk);
   gsl_matrix_free(W);
 }
 
@@ -413,8 +476,7 @@ double delta_width_calculation(gsl_vector* Q, double center)
   buffer.Q=Q;
   buffer.center=center;  
     F.params = &buffer;
-//    gsl_integration_qagiu (&F, 0.0, accuracy, accuracy, N_int_steps, w1, &int_result, &int_error);
-    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
+    gsl_integration_qagiu (&F, 0.0, accuracy, accuracy, N_int_steps, w1, &int_result, &int_error);
     fprintf(file_out,"%.15le\t%.15le\t%.15le\n",center, int_result, int_error); fflush(file_out);
    gsl_integration_workspace_free (w1);
   fclose(file_out);
@@ -475,7 +537,7 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
      }
   }
   fprintf(file_out,"omega_stop=%.15le\n",(*stop)*(2.0*dNt_2_pre)); fflush(file_out);
-  (*center_real)=(  (*start)   +   (*stop))/2.0;
+  (*center_real)=omega_max;;//(  (*start)   +   (*stop))/2.0;
   
   (*start)=(*start) * 2.0*dNt_2_pre;
   (*stop)=(*stop) * 2.0*dNt_2_pre;
@@ -669,7 +731,7 @@ fclose(file_out);
     current[count1]=current_pre[points_numbers[count1]-1];
     error[count1]=error_pre[points_numbers[count1]-1];
   }
-//  fclose(file_in_current);
+  fclose(file_in_current);
 
   file_out=fopen_control("current_control_fin.txt","w");
   for(t=0;t<Nt_2;t++)
@@ -684,7 +746,7 @@ fclose(file_out);
     par_double=gsl_matrix_get(S_pre,points_numbers[count1]-1, points_numbers[count2]-1);
     gsl_matrix_set(S, count1, count2, par_double);
   }
-//  fclose(file_in_matrix);
+  fclose(file_in_matrix);
 
   file_out=fopen_control("cov_matrix_control.txt","w");
   for(i=0;i<Nt_2;i++){
@@ -714,7 +776,7 @@ fclose(file_out);
   for(t=1;t<=Nt_2;t++)
   {
     F.params = &t;
-    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
+    gsl_integration_qagiu (&F, 0.0, accuracy, accuracy, N_int_steps, w, &int_result, &int_error); 
     gsl_vector_set(R,t-1,int_result);
     fprintf(file_out,"%d\t%.15le\t%.15le\n", t, int_result, int_error); fflush(file_out);
   }
@@ -734,7 +796,7 @@ fclose(file_out);
   for(t=1;t<=Nt_2;t++)
   {
     F.params = &t;
-    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
+    gsl_integration_qagiu (&F, 0.0, accuracy, accuracy, N_int_steps, w, &int_result, &int_error); 
     gsl_vector_set(omega_R,t-1,int_result);
     fprintf(file_out,"%d\t%.15le\t%.15le\n", t, int_result, int_error); fflush(file_out);
   }
@@ -746,22 +808,12 @@ fclose(file_out);
 
 
   {
-    //clean file before output
-    file_out_excl=fopen_control("rho_excl.txt", "w");  
-    fclose(file_out_excl);
-    
   int count_center=0;
   double C, C0;
   gsl_vector* Q_real;
   Q_initial=gsl_vector_calloc(Nt_2);
-  
-  //for test
-  int counter_b =0;
-  
   for(center=center_start; center<=center_stop; center+=center_delta)
   {
-    //for test
-    counter_b++;
     double center_real=center/(2.0*dNt_2_pre);
     double center_calculated=0.0;
     double center_calculated_real=0.0;
@@ -769,9 +821,7 @@ fclose(file_out);
     sprintf(file_name,"delta_function_c=%3.3leT.txt", center);
     Q=gsl_vector_calloc(Nt_2);
     Q_real=gsl_vector_calloc(Nt_2);
-
     calculate_Q(Q, R, S, center_real);
-
     if(count_center==0)
     {
       for(i=0;i<Nt_2;i++)
@@ -840,7 +890,7 @@ double real_start, real_stop, real_center1, real_width1;
 
 
     file_out=fopen_control("rho.txt", "a");
-    file_out_excl=fopen_control("rho_excl.txt", "a");    
+    file_out_excl=fopen_control("rho_excl.txt", "a");
     calculate_rho(Q, current, error, &rho, &rho_stat_err);
     width=delta_width_calculation(Q, center_real);
 
@@ -855,7 +905,7 @@ double real_start, real_stop, real_center1, real_width1;
 
 
     fprintf(file_out,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", center, width*2.0*dNt_2_pre, center1, width1, rho, rho_stat_err);
-    fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", center, width_real*2.0*dNt_2_pre, real_center1, real_width1,  rho_real, rho_stat_err_real);
+    fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", center, width_real*2.0*dNt_2_pre, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop);
     
     fclose(file_out);
     fclose(file_out_excl);
