@@ -83,6 +83,12 @@ void parse_option(FILE* file, const char* pattern, void* ptr)
     SKIP_REMAINING_CHARS(file)
 }
 
+struct interval
+{  
+  int size;
+  int *times;
+};
+
 int Nt_2;//actually  it is equal to HALF of real timeslices (current-current correlator should be symmetrized before further usage)
 double dNt_2;
 
@@ -105,6 +111,8 @@ char directory[1000];
 int flag_model;
 int N_valid_points;
 int* points_numbers;
+int N_intervals=0;
+interval *interval_numbers;
 int Nt_2_pre;
 double dNt_2_pre;
 
@@ -148,22 +156,59 @@ double kernel (int i, double omega)
     return  (exp(omega*(-(double)i))+exp(omega*((double)i-2.0*dNt_2_pre)))/(1.0+exp(-2.0*omega*dNt_2_pre));
 }*/
 
+void construct_intervals(int *points, int num_points, interval *intervals) {
+
+  int i,j,k,count_interval,interval_length;
+
+  count_interval=num_points-1;
+  for(i=(num_points-1);i>=1;i--) {
+    if((points[i]-1)==points[i-1]) { //single "red" point
+      intervals[count_interval].size=1;
+      intervals[count_interval].times=(int *)calloc(1,sizeof(int));
+      intervals[count_interval].times[0]=points[i];
+    }
+    else { //contains "black points"
+      interval_length=(points[i]-points[i-1]);
+      intervals[count_interval].size=interval_length;
+      intervals[count_interval].times=(int *)calloc(interval_length,sizeof(int));
+      for(j=points[i],k=(interval_length-1);j>points[i-1];j--,k--) {
+	intervals[count_interval].times[k]=j;
+      }
+    }
+    count_interval--;
+  }
+  intervals[0].size=1;
+  intervals[0].times=(int *)calloc(1,sizeof(int));
+  intervals[0].times[0]=points[0];
+  
+}
 
 //regularization is made by omega 
     //i is the number of timeslice in array+1, NOT real time
 double kernel(int i, double omega)
 {
-    int real_t;
-    real_t=points_numbers[i-1];
-    if(omega*dNt_2_pre<accuracy)
-	return cosh(omega*(dNt_2-(double)real_t))/(PI*dNt_2_pre);
-    else
-	return  (omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*dNt_2_pre)))/(1.0-exp(-2.0*omega*dNt_2_pre));
+    int interval_length=interval_numbers[i-1].size;   
+    int real_t, j;
+    double result=0.0;
+    for(j=0;j<interval_length;j++) {
+      //real_t=points_numbers[i-1];
+      real_t=interval_numbers[i-1].times[j];
+      if(omega*dNt_2_pre<accuracy) {
+	//return cosh(omega*(dNt_2-(double)real_t))/(PI*dNt_2_pre);
+	result+=cosh(omega*(dNt_2-(double)real_t))/(PI*dNt_2_pre);
+      }
+      else {
+	//return  (omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*dNt_2_pre)))/(1.0-exp(-2.0*omega*dNt_2_pre));
+	result+=(omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*dNt_2_pre)))/(1.0-exp(-2.0*omega*dNt_2_pre));
+      }
+    }
+    return result/((double)interval_length);
 }
 //kernel at zero omega (to exclude zeros of denominator from the calculation)
 double kernel0(int i)
 {
-  return 1.0/(PI*dNt_2_pre);
+  int interval_length=interval_numbers[i-1].size;
+  return 1.0/(((double)interval_length)*PI*dNt_2_pre);
 }
 
 
@@ -448,14 +493,24 @@ void calculate_Q(gsl_vector* Q, gsl_vector* R, gsl_matrix* S, double center)
 
 void calculate_rho(gsl_vector* Q,  double* current, double* error, double* rho, double* rho_stat_err)
 {
-  int i;
+  int i,j,interval_length;
   double res, res_error;
+  double avg,err_avg;
   res=0.0;
   res_error=0.0;
  for(i=0;i<Nt_2;i++)
   {
-    res+=current[i]*gsl_vector_get(Q, i);
-    res_error+=error[i]*error[i]*gsl_vector_get(Q, i)*gsl_vector_get(Q, i);
+    interval_length=interval_numbers[i].size;
+    for(j=0;j<interval_length;j++) {
+      avg+=current[interval_numbers[i].times[j]];
+      err_avg+=error[interval_numbers[i].times[j]]*error[interval_numbers[i].times[j]];
+    }
+    err_avg=sqrt(err_avg)/((double)interval_length);
+    avg=avg/((double)interval_length);
+    res+=avg*gsl_vector_get(Q, i);
+    res_error+=err_avg*err_avg*gsl_vector_get(Q, i)*gsl_vector_get(Q, i);
+    //res+=current[i]*gsl_vector_get(Q, i);
+    //res_error+=error[i]*error[i]*gsl_vector_get(Q, i)*gsl_vector_get(Q, i);
   }
   res_error=sqrt(res_error);
   *rho=res;
@@ -619,7 +674,10 @@ else
   for(i=0;i<N_valid_points; i++)
     points_numbers[i]=i+1;
 }
-
+ N_intervals=N_valid_points;
+ interval_numbers=(interval *)calloc(N_intervals, sizeof(interval));
+ 
+ construct_intervals(points_numbers,N_valid_points,interval_numbers);
 
   fclose(file_const);
 
@@ -891,13 +949,15 @@ double real_start, real_stop, real_center1, real_width1;
 
     file_out=fopen_control("rho.txt", "a");
     file_out_excl=fopen_control("rho_excl.txt", "a");
-    calculate_rho(Q, current, error, &rho, &rho_stat_err);
+    //calculate_rho(Q, current, error, &rho, &rho_stat_err);
+    calculate_rho(Q, current_pre, error_pre, &rho, &rho_stat_err);
     width=delta_width_calculation(Q, center_real);
 
     delta_characteristics_calculation(&start, &stop, &center1, Q, center_real);
     width1=(stop-start)/2.0;
 
-    calculate_rho(Q_real, current, error, &rho_real, &rho_stat_err_real);
+    //calculate_rho(Q_real, current, error, &rho_real, &rho_stat_err_real);
+    calculate_rho(Q_real, current_pre, error_pre, &rho_real, &rho_stat_err_real);
     width_real=delta_width_calculation(Q_real, center_real);
 
     delta_characteristics_calculation(&real_start, &real_stop, &real_center1, Q_real, center_real);
