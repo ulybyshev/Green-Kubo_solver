@@ -500,17 +500,17 @@ void calculate_rho(gsl_vector* Q,  double* current, double* error, double* rho, 
   res_error=0.0;
  for(i=0;i<Nt_2;i++)
   {
-    interval_length=interval_numbers[i].size;
+    /*interval_length=interval_numbers[i].size;
     for(j=0;j<interval_length;j++) {
-      avg+=current[interval_numbers[i].times[j]];
-      err_avg+=error[interval_numbers[i].times[j]]*error[interval_numbers[i].times[j]];
+      avg+=current[interval_numbers[i].times[j]-1];
+      err_avg+=error[interval_numbers[i].times[j]-1]*error[interval_numbers[i].times[j]-1];
     }
     err_avg=sqrt(err_avg)/((double)interval_length);
     avg=avg/((double)interval_length);
     res+=avg*gsl_vector_get(Q, i);
-    res_error+=err_avg*err_avg*gsl_vector_get(Q, i)*gsl_vector_get(Q, i);
-    //res+=current[i]*gsl_vector_get(Q, i);
-    //res_error+=error[i]*error[i]*gsl_vector_get(Q, i)*gsl_vector_get(Q, i);
+    res_error+=err_avg*err_avg*gsl_vector_get(Q, i)*gsl_vector_get(Q, i);*/
+    res+=current[i]*gsl_vector_get(Q, i);
+    res_error+=error[i]*error[i]*gsl_vector_get(Q, i)*gsl_vector_get(Q, i);
   }
   res_error=sqrt(res_error);
   *rho=res;
@@ -766,7 +766,7 @@ fclose(file_out);
   fprintf(file_out,"\n");
   }
   fclose(file_out);
-  //If we are going to do intervals: do we need full data set to construct new covariance matrix?
+  
 //conversion to real arrays taken into account only certain timeslices
 ///////////////////////////////////////////
 ///////////////////////////////////////////
@@ -785,10 +785,18 @@ fclose(file_out);
 
   S=gsl_matrix_calloc(Nt_2, Nt_2);
 
+  double result=0.0;
+  double temp_err=0.0;
   for(count1=0;count1<Nt_2;count1++)
   {
-    current[count1]=current_pre[points_numbers[count1]-1];
-    error[count1]=error_pre[points_numbers[count1]-1];
+    for(i=0;i<interval_numbers[count1].size;i++) {
+      result+=current_pre[interval_numbers[count1].times[i]-1];
+      temp_err+=error_pre[interval_numbers[count1].times[i]-1]*error_pre[interval_numbers[count1].times[i]-1];
+    }
+    current[count1]=result/((double)interval_numbers[count1].size);
+    error[count1]=sqrt(temp_err)/((double)interval_numbers[count1].size);
+    //current[count1]=current_pre[points_numbers[count1]-1];
+    //error[count1]=error_pre[points_numbers[count1]-1];
   }
   fclose(file_in_current);
 
@@ -799,7 +807,7 @@ fclose(file_out);
   }
   fclose(file_out);
 
-  double result=0.0;
+  result=0.0;
   for(count1=0;count1<Nt_2;count1++)
   for(count2=0;count2<Nt_2;count2++)
   {
@@ -960,15 +968,15 @@ double real_start, real_stop, real_center1, real_width1;
 
     file_out=fopen_control("rho.txt", "a");
     file_out_excl=fopen_control("rho_excl.txt", "a");
-    //calculate_rho(Q, current, error, &rho, &rho_stat_err);
-    calculate_rho(Q, current_pre, error_pre, &rho, &rho_stat_err);
+    calculate_rho(Q, current, error, &rho, &rho_stat_err);
+    //calculate_rho(Q, current_pre, error_pre, &rho, &rho_stat_err);
     width=delta_width_calculation(Q, center_real);
 
     delta_characteristics_calculation(&start, &stop, &center1, Q, center_real);
     width1=(stop-start)/2.0;
 
-    //calculate_rho(Q_real, current, error, &rho_real, &rho_stat_err_real);
-    calculate_rho(Q_real, current_pre, error_pre, &rho_real, &rho_stat_err_real);
+    calculate_rho(Q_real, current, error, &rho_real, &rho_stat_err_real);
+    //calculate_rho(Q_real, current_pre, error_pre, &rho_real, &rho_stat_err_real);
     width_real=delta_width_calculation(Q_real, center_real);
 
     delta_characteristics_calculation(&real_start, &real_stop, &real_center1, Q_real, center_real);
