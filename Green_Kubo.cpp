@@ -187,7 +187,7 @@ void construct_intervals(int *points, int num_points, interval *intervals) {
     //i is the number of timeslice in array+1, NOT real time
 double kernel(int i, double omega)
 {
-    int interval_length=interval_numbers[i-1].size;   
+    int interval_length=interval_numbers[i-1].size;  
     int real_t, j;
     double result=0.0;
     for(j=0;j<interval_length;j++) {
@@ -207,8 +207,7 @@ double kernel(int i, double omega)
 //kernel at zero omega (to exclude zeros of denominator from the calculation)
 double kernel0(int i)
 {
-  int interval_length=interval_numbers[i-1].size;
-  return 1.0/(((double)interval_length)*PI*dNt_2_pre);
+  return 1.0/(PI*dNt_2_pre);
 }
 
 
@@ -678,6 +677,14 @@ else
  interval_numbers=(interval *)calloc(N_intervals, sizeof(interval));
  
  construct_intervals(points_numbers,N_valid_points,interval_numbers);
+ printf("N_valid_points %d\n",N_valid_points);
+  for(i=0;i<N_intervals;i++) {
+    printf("******************\n");
+    printf("Interval %d\n",i);
+    printf("******************\n");
+    for(j=0;j<interval_numbers[i].size;j++)
+      printf("%d\n",interval_numbers[i].times[j]);
+  }
 
   fclose(file_const);
 
@@ -787,23 +794,34 @@ fclose(file_out);
 
   double result=0.0;
   double temp_err=0.0;
+  //printf("\nCorrelator Average\n");
   for(count1=0;count1<Nt_2;count1++)
   {
+    //printf("******************\n");
+    //printf("Interval %d\n",count1);
+    //printf("******************\n");
+    //printf("length: %d\n",interval_numbers[count1].size);
     for(i=0;i<interval_numbers[count1].size;i++) {
+      //printf("current_pre[%d]: %e\n",interval_numbers[count1].times[i],current_pre[interval_numbers[count1].times[i]-1]);
+      //printf("error_pre[%d]: %e\n",interval_numbers[count1].times[i],error_pre[interval_numbers[count1].times[i]-1]);
       result+=current_pre[interval_numbers[count1].times[i]-1];
       temp_err+=error_pre[interval_numbers[count1].times[i]-1]*error_pre[interval_numbers[count1].times[i]-1];
     }
     current[count1]=result/((double)interval_numbers[count1].size);
     error[count1]=sqrt(temp_err)/((double)interval_numbers[count1].size);
+    //printf("current[%d]: %e\n",count1,current[count1]);
+    //printf("error[%d]: %e\n",count1,error[count1]);
+    result=0.0;
+    temp_err=0.0; 
     //current[count1]=current_pre[points_numbers[count1]-1];
     //error[count1]=error_pre[points_numbers[count1]-1];
   }
   fclose(file_in_current);
 
   file_out=fopen_control("current_control_fin.txt","w");
-  for(t=0;t<Nt_2;t++)
+  for(t=0;t<=Nt_2;t++)
   {
-    fprintf(file_out,"%d\t%.15le\t%.15le\n", points_numbers[t], current[t], error[t]);
+    fprintf(file_out,"%d\t%.15le\t%.15le\n", points_numbers[t]-1, current[t], error[t]);
   }
   fclose(file_out);
 
