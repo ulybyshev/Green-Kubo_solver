@@ -766,6 +766,7 @@ fclose(file_out);
   fprintf(file_out,"\n");
   }
   fclose(file_out);
+  //If we are going to do intervals: do we need full data set to construct new covariance matrix?
 //conversion to real arrays taken into account only certain timeslices
 ///////////////////////////////////////////
 ///////////////////////////////////////////
@@ -798,11 +799,21 @@ fclose(file_out);
   }
   fclose(file_out);
 
+  double result=0.0;
   for(count1=0;count1<Nt_2;count1++)
   for(count2=0;count2<Nt_2;count2++)
   {
-    par_double=gsl_matrix_get(S_pre,points_numbers[count1]-1, points_numbers[count2]-1);
-    gsl_matrix_set(S, count1, count2, par_double);
+    for(i=0;i<interval_numbers[count1].size;i++) {
+      for(j=0;j<interval_numbers[count2].size;j++) {
+	par_double=gsl_matrix_get(S_pre,interval_numbers[count1].times[i]-1,interval_numbers[count2].times[j]-1);
+	result+=par_double;
+      }
+    }
+    par_double=result/((double)interval_numbers[count1].size*interval_numbers[count2].size);
+    gsl_matrix_set(S,count1,count2,par_double);
+    result=0.0;
+    //par_double=gsl_matrix_get(S_pre,points_numbers[count1]-1, points_numbers[count2]-1);
+    //gsl_matrix_set(S, count1, count2, par_double);
   }
   fclose(file_in_matrix);
 
