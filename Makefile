@@ -1,7 +1,6 @@
-#this is the comment
-#variables defined as NAME:=  (NAME can be any) and addressed as $(NAME) 
 #if you want to recompile all:  "make clean"  then "make all"
-#if you want to recompile only complex class without recompilation of all other classes: "make complex.o"  then "make example"
+#for compilation the path (if needed) to GNU GSL libraries should be specified
+
 
 #compilator name (for example could be mpicc instead)
 CC:=g++

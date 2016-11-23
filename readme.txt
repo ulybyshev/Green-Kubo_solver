@@ -1,3 +1,7 @@
+The programs performs analytical continuation from Euclidean to real time through the solution of Green-Kubo relation. 
+Example calculation os Density of States for Square Hubbard model from Monte Carlo data is included.
+
+
 to run the program:   ./program  -t Nt -c  file_current.txt  -m file_matrix.txt -o path_for_output -p  file_with_parameters.txt
 
   file for currents:
