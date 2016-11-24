@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
+#include <algorithm>
 
 //true if option exists, false otherwise
 bool option_exists (char** start, char** stop, const std::string& option);

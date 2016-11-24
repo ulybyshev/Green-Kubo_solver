@@ -64,6 +64,7 @@ void parse_force_zero_option(FILE* file_const)
 
 bool parse_const_file(FILE* file_const, correlator* pC)
 {
+    parse_option(file_const,"%d",&kernel_switcher);
     parse_option(file_const,"%le",&accuracy);
     parse_option(file_const,"%ld",&N_int_steps);
     parse_option(file_const,"%le",&omega_plot_delta);

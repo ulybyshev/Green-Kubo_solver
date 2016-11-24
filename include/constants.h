@@ -15,6 +15,8 @@ extern char parameters_filename[1024];
 extern int Nt_2;//number of points in correlator
 extern double dNt_2;//the same in double precision
 
+extern int kernel_switcher;
+
 
 extern double accuracy;
 

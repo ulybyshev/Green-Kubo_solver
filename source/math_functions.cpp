@@ -1,5 +1,6 @@
 #include "math_functions.h"
 #include "input_output.h"
+#include "kernel.h"
 
 
 //simple kernel for time points (works in cases of flag_model==1)
@@ -8,17 +9,19 @@ double kernel_points(int i, correlator* pC,double omega)
     int real_t;
     real_t=pC->points_numbers[i-1];
     if(omega*pC->length<accuracy)
-	return cosh(omega*(pC->length-(double)real_t))/(PI*pC->length);
+	return kernel_function(omega+accuracy/pC->length, 2.0*pC->length, (double)real_t);
+//	1.0/(PI*pC->length);
     else
-	return  (omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*pC->length)))/(1.0-exp(-2.0*omega*pC->length));
+	return kernel_function(omega, 2.0*pC->length, (double)real_t);
+//	 (omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*pC->length)))/(1.0-exp(-2.0*omega*pC->length));
 }
 //kernel at zero omega (to exclude zeros of denominator from the calculation)
 double kernel0_points(int i, correlator* pC)
 {
-  return 1.0/(PI*pC->length);
+  return kernel_function(accuracy/pC->length, 2.0*pC->length, (double)i);
 }
 
-//kernel in case of averaging over intervals (workd s in kase of flag_model==2)
+//kernel in case of averaging over intervals (works in case of flag_model==2)
 double kernel_intervals(int i, correlator* pC, double omega)
 {
     int interval_length=pC->interval_numbers[i-1]->size;  
@@ -29,11 +32,11 @@ double kernel_intervals(int i, correlator* pC, double omega)
       real_t=pC->interval_numbers[i-1]->times[j];
       if(omega*pC->length<accuracy) 
       {
-	result+=cosh(omega*(pC->length-(double)real_t))/(PI*pC->length);
+	result+=kernel_function(omega+accuracy/pC->length, 2.0*pC->length, (double)real_t);
       }
       else 
       {
-	result+=(omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*pC->length)))/(1.0-exp(-2.0*omega*pC->length));
+	result+=kernel_function(omega, 2.0*pC->length, (double)real_t);;
       }
     }
     return result/((double)interval_length);
@@ -41,7 +44,7 @@ double kernel_intervals(int i, correlator* pC, double omega)
 //kernel at zero omega (to exclude zeros of denominator from the calculation)
 double kernel0_intervals(int i, correlator* pC)
 {
-  return 1.0/(PI*pC->length);
+  return kernel_function(accuracy/pC->length, 2.0*pC->length, (double)i);
 }
 
 

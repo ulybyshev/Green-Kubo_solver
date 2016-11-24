@@ -10,11 +10,15 @@ char correlator_filename[1024];
 char cov_matrix_filename[1024];
 char parameters_filename[1024];
 
+int Nt_2;//number of points in correlator
+double dNt_2;//the same in double precision
 
 ////////////////////////////////
 //parameters from constants file
-int Nt_2;//number of points in correlator
-double dNt_2;//the same in double precision
+int kernel_switcher;
+//==0 for conductitvity kernel
+//==1 for Density of States kernel
+
 
 //relative accuracy of numerical integration
 double accuracy=1e-8;

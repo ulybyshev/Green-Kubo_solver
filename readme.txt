@@ -25,6 +25,8 @@ covariance matrix should be calculated for symmetrized correlator (size of the m
 
 
  file with parameters (comments lines alternate with parameter values). All dimensional quantities are in units of temperature
+ int kernel_switcher (=0 for conductivity kernel, ==1 for Density of States kernel) 
+ 1
  double accuracy
  1e-8
  long int N_int_steps

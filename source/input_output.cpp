@@ -41,6 +41,8 @@ bool print_parameters(FILE* file_out, correlator* pC)
 
     fprintf(file_out,"file with parameters:\n %s\n", parameters_filename);
 
+    fprintf(file_out,"kernel switcher=: %d\n", kernel_switcher);
+
     fprintf(file_out,"accuracy=%.15le\n",accuracy);
     fprintf(file_out,"Number os steps in numerical interation=%ld\n",N_int_steps);
     fprintf(file_out,"Step in plots of resolution function(omega)=%.15le\n",omega_plot_delta);
