@@ -18,7 +18,7 @@ double dNt_2;//the same in double precision
 int kernel_switcher;
 //==0 for conductitvity kernel
 //==1 for Density of States kernel
-
+//==2 for Density of States kernel taking into account discrete time
 
 //relative accuracy of numerical integration
 double accuracy=1e-8;

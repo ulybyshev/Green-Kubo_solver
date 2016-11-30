@@ -9,16 +9,16 @@ double kernel_points(int i, correlator* pC,double omega)
     int real_t;
     real_t=pC->points_numbers[i-1];
     if(omega*pC->length<accuracy)
-	return kernel_function(omega+accuracy/pC->length, 2.0*pC->length, (double)real_t);
+	return kernel_function(omega+accuracy/pC->length, 2*pC->N_full_points, real_t);
 //	1.0/(PI*pC->length);
     else
-	return kernel_function(omega, 2.0*pC->length, (double)real_t);
+	return kernel_function(omega, 2*pC->N_full_points, real_t);
 //	 (omega/PI)*(exp(omega*(-(double)real_t))+exp(omega*((double)real_t-2.0*pC->length)))/(1.0-exp(-2.0*omega*pC->length));
 }
 //kernel at zero omega (to exclude zeros of denominator from the calculation)
 double kernel0_points(int i, correlator* pC)
 {
-  return kernel_function(accuracy/pC->length, 2.0*pC->length, (double)i);
+  return kernel_function(accuracy/pC->length, 2*pC->N_full_points, i);
 }
 
 //kernel in case of averaging over intervals (works in case of flag_model==2)
@@ -32,11 +32,11 @@ double kernel_intervals(int i, correlator* pC, double omega)
       real_t=pC->interval_numbers[i-1]->times[j];
       if(omega*pC->length<accuracy) 
       {
-	result+=kernel_function(omega+accuracy/pC->length, 2.0*pC->length, (double)real_t);
+	result+=kernel_function(omega+accuracy/pC->length, 2*pC->N_full_points, real_t);
       }
       else 
       {
-	result+=kernel_function(omega, 2.0*pC->length, (double)real_t);;
+	result+=kernel_function(omega, 2*pC->N_full_points, real_t);;
       }
     }
     return result/((double)interval_length);
@@ -44,7 +44,7 @@ double kernel_intervals(int i, correlator* pC, double omega)
 //kernel at zero omega (to exclude zeros of denominator from the calculation)
 double kernel0_intervals(int i, correlator* pC)
 {
-  return kernel_function(accuracy/pC->length, 2.0*pC->length, (double)i);
+  return kernel_function(accuracy/pC->length, 2*pC->N_full_points, i);
 }
 
 
@@ -154,7 +154,12 @@ void R_integration(calc_structures* pA,correlator* pC)
 	{
 	    buffer.t=t;
 	    F.params = &buffer;
-	    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
+	    if(kernel_switcher!=2)
+	    	    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
+	    else
+	    {
+	    	    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w, &int_result, &int_error); 
+	    }
 	    gsl_vector_set(pA->R,t-1,int_result);
 	    fprintf(file_out,"%d\t%.15le\t%.15le\n", t, int_result, int_error); fflush(file_out);
 	}
@@ -183,8 +188,11 @@ void omega_R_integration(calc_structures* pA,correlator* pC)
 	{
 	    buffer.t=t;
 	    F.params = &buffer;
-	    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
-	    gsl_vector_set(pA->omega_R,t-1,int_result);
+	    if(kernel_switcher!=2)
+	    	gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
+	    else
+		gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w, &int_result, &int_error); 
+    	    gsl_vector_set(pA->omega_R,t-1,int_result);
 	    fprintf(file_out,"%d\t%.15le\t%.15le\n", t, int_result, int_error); fflush(file_out);
 	}
 	gsl_integration_workspace_free (w);
@@ -227,7 +235,10 @@ void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, double cent
       buffer.i=i;
       buffer.j=j;
       F.params = &buffer;
-      gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
+      if(kernel_switcher!=2)
+            gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
+	else
+	    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w1, &int_result, &int_error); 
       gsl_matrix_set(W,i-1,j-1,int_result);
       fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n", i,j, int_result, int_error); fflush(file_out);
     }
@@ -240,11 +251,8 @@ void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, double cent
     for(i=1;i<=pC->N_valid_points;i++)
     for(j=1;j<=pC->N_valid_points;j++)
     {
-      if(i==j)
-      {
         par_double=lambda*gsl_matrix_get(W, i-1, j-1)+(1.0-lambda) * gsl_matrix_get(pC->S, i-1, j-1);
         gsl_matrix_set(W,i-1,j-1,par_double);
-      } 
     }
   }
   
@@ -489,7 +497,10 @@ double delta_width_calculation(gsl_vector* Q, double center, correlator* pC)
   buffer.center=center;  
   buffer.pC=pC;
     F.params = &buffer;
-    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
+    if(kernel_switcher!=2)
+	gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
+    else
+	gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w1, &int_result, &int_error); 
     fprintf(file_out,"%.15le\t%.15le\t%.15le\n",center, int_result, int_error); fflush(file_out);
    gsl_integration_workspace_free (w1);
   fclose(file_out);
