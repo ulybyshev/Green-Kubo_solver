@@ -3,6 +3,34 @@
 #include "kernel.h"
 
 
+//for lattice version of the kernel functions
+double lattice_exp(double omega, int euclidean_time)
+{//we assume that euclidean time is >=0 
+    if(euclidean_time>=0)
+    {
+	if (omega>-1.0)
+	    return my_pow(1.0+omega, euclidean_time);
+	else
+	    return 0.0;
+    }
+    else
+    {
+	return 0.0;
+    }
+}
+//for lattice exponent
+double my_pow(double x, int b)
+{
+    int i=0;
+    double res=1.0;
+    for(i=0;i<b;i++)
+	res*=x;
+    return res;
+}
+
+
+
+
 //simple kernel for time points (works in cases of flag_model==1)
 double kernel_points(int i, correlator* pC,double omega)
 {

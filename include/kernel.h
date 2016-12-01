@@ -1,4 +1,5 @@
 #include <math.h>
+#include "math_functions.h"
 
 //general wrapper
 //euclidean time=0.....beta
@@ -8,12 +9,13 @@ double kernel_function(double omega, int beta, int euclidean_time);
 //set of kernels
 double kernel_conductivity(double omega, int beta, int euclidean_time);
 
-double kernel_DOS(double omega, int beta, int euclidean_time);
+double kernel_DOS_even(double omega, int beta, int euclidean_time);
 
 //lattice version of kernel_DOS (takes into account time discretization)
-double kernel_lattice_DOS(double omega, int  beta, int euclidean_time);
+double kernel_lattice_DOS_even(double omega, int  beta, int euclidean_time);
 
-//lattice exponent with discrete time
-double lattice_exp (double omega, int euclidean_time);
+//verions of the kernel for DOS in case of non-symmtrical correlator
+double kernel_DOS_odd(double omega, int beta, int euclidean_time);
 
-double my_pow(double x, int b);
+//lattice version of kernel_DOS (takes into account time discretization)
+double kernel_lattice_DOS_odd(double omega, int  beta, int euclidean_time);

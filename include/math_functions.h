@@ -1,5 +1,13 @@
 #include "constants.h"
 
+
+//for lattice version of the kernel functions
+double lattice_exp(double omega, int euclidean_time);
+//for lattice exponent
+double my_pow(double x, int b);
+
+
+
 //simple kernel for time points (works in cases of flag_model==1)
 double kernel_points(int i, correlator* pC,double omega);
 
