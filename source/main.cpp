@@ -8,6 +8,7 @@
 int main(int argc, char ** argv)
 {
     flag_log_output=true;
+    special_flag_log_output=true;
     correlator C;
 
     if(parse_cmd_line(argc, argv))
@@ -56,16 +57,22 @@ int main(int argc, char ** argv)
     omega_R_integration( &A, &C);
 
 //calculation of integrals in W matrix
+
+    fprintf(general_log,"\n W matrix calculation started\nN_center=%d\n", A.N_center);fflush(general_log);
     int count_center=0, i;
     for(count_center=0; count_center<A.N_center; count_center++)
     {
+	fprintf(general_log,"count_center=%d\n", count_center);fflush(general_log);
 	W_integration(A.W[count_center], &C,  A.center[count_center]/(2.0*C.length));
     }
+    fprintf(general_log,"\n W matrix calculation finished\n");fflush(general_log);
 
 
 
 
-//now the calculation of conductivity is launched
+
+
+//now the final calculation of conductivity is launched
 {
     //clean file before output
     file_out_excl=fopen_control("rho_excl.txt", "w");  

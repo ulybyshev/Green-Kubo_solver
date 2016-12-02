@@ -30,6 +30,8 @@ extern int flag_lambda_regularization;
 
 extern double lambda;
 
+extern double relative_error;
+
 extern double center_start;
 
 extern double center_stop;
@@ -38,20 +40,15 @@ extern double center_delta;
 
 extern int flag_model;
 
-//extern int N_valid_points;
-
-//extern int* points_numbers;
-
-//extern int N_intervals;
-//extern interval *interval_numbers;
-
-//extern int Nt_2_pre;
-//extern double dNt_2_pre;
-
 extern int flag_exclude_delta;
 
 extern int count_start_exclude;
 
 extern bool flag_log_output;
+
+extern bool special_flag_log_output;
+
+
+extern int limit_power;//corresponding to the minimal value of lambda=0.9 = 1-10 ^{-1} for regularization with covariance matrix
 
 #endif

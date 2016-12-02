@@ -51,7 +51,10 @@ bool print_parameters(FILE* file_out, correlator* pC)
     fprintf(file_out,"Step in center of resolution function = %.15le\n",center_delta);
 
     fprintf(file_out,"flag_lambda_regularization=%d\n",flag_lambda_regularization);
-    fprintf(file_out,"Lambda(regularization)=%.15le\n",lambda);
+    if(flag_lambda_regularization>0)
+	fprintf(file_out,"Lambda(regularization)=%.15le\n",lambda);
+    else
+	fprintf(file_out,"ordered relative error=%.15le\n",relative_error);
 
     fprintf(file_out,"Take into account all (0)  or not all (1) timeslices or average over intervals (2) = %d\n",flag_model);
     if(flag_model)

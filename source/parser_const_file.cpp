@@ -16,7 +16,10 @@ void parse_lambda_option(FILE* file_const)
     {SKIP_REMAINING_CHARS(file_const)}
     else
     {
-	fscanf(file_const, "%le", &lambda);
+	if(flag_lambda_regularization>0)
+	    fscanf(file_const, "%le", &lambda);
+	else
+	    fscanf(file_const, "%le", &relative_error);
 	SKIP_REMAINING_CHARS(file_const)
     }
 }

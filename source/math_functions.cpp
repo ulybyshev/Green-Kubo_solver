@@ -186,7 +186,7 @@ void R_integration(calc_structures* pA,correlator* pC)
 	    	    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
 	    else
 	    {
-	    	    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w, &int_result, &int_error); 
+	    	    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w, &int_result, &int_error); 
 	    }
 	    gsl_vector_set(pA->R,t-1,int_result);
 	    
@@ -220,7 +220,7 @@ void omega_R_integration(calc_structures* pA,correlator* pC)
 	    if(kernel_switcher!=2)
 	    	gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
 	    else
-		gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w, &int_result, &int_error); 
+		gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w, &int_result, &int_error); 
     	    gsl_vector_set(pA->omega_R,t-1,int_result);
 	    LOG_FILE_OPERATION(fprintf(file_out,"%d\t%.15le\t%.15le\n", t, int_result, int_error); fflush(file_out);)
 	}
@@ -245,7 +245,7 @@ void W_integration(gsl_matrix * W, correlator* pC, double center)
   buffer.omega_center=center;  
   buffer.pC=pC;
   for(i=1;i<=pC->N_valid_points;i++)
-    for(j=1;j<=pC->N_valid_points;j++)
+    for(j=i;j<=pC->N_valid_points;j++)
     {
       buffer.i=i;
       buffer.j=j;
@@ -253,11 +253,18 @@ void W_integration(gsl_matrix * W, correlator* pC, double center)
       if(kernel_switcher!=2)
             gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
 	else
-	    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w1, &int_result, &int_error); 
+	    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w1, &int_result, &int_error); 
       gsl_matrix_set(W,i-1,j-1,int_result);
       LOG_FILE_OPERATION(fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n", i,j, int_result, int_error); fflush(file_out);)
     }
   gsl_integration_workspace_free (w1);
+  //using symmetry properties of the W matrix
+   for(i=1;i<=pC->N_valid_points;i++)
+    for(j=1;j<i;j++)
+    {
+	int_result=gsl_matrix_get(W,j-1,i-1);
+	gsl_matrix_set(W,i-1,j-1,int_result);
+    }
   LOG_FILE_OPERATION(fclose(file_out);)
 }
 
@@ -347,9 +354,9 @@ if (flag_lambda_regularization==2)
       par_double += gsl_matrix_get(W,i,j)*gsl_vector_get(Q, j);
     sum+= fabs(par_double / gsl_vector_get(pA->R, i) - 1.0);
   }    
-  LOG_FILE_OPERATION(file_out=fopen_log("Discrepancy.txt","a", center);)
-  LOG_FILE_OPERATION(fprintf(file_out,"Discrepancy:%.15le\n",sum);fflush(file_out);)
-  LOG_FILE_OPERATION(fclose(file_out);)
+  SPECIAL_LOG_FILE_OPERATION(file_out=fopen_log("Discrepancy.txt","a", center);)
+  SPECIAL_LOG_FILE_OPERATION(fprintf(file_out,"Discrepancy:%.15le\n",sum);fflush(file_out);)
+  SPECIAL_LOG_FILE_OPERATION(fclose(file_out);)
     
   LOG_FILE_OPERATION(file_out=fopen_log("Q_vector.txt","a", center);)
   //Normalize Q = Q/(pA->R*Q)
@@ -419,12 +426,12 @@ else
     LOG_FILE_OPERATION(fclose(file_out);)
     
 
-    LOG_FILE_OPERATION(file_out=fopen_log("Wk_vector.txt","a", center);)//output of eigenvalues of kernel matrix
+    SPECIAL_LOG_FILE_OPERATION(file_out=fopen_log("Wk_vector.txt","a", center);)//output of eigenvalues of kernel matrix
     for(i=0;i<pC->N_valid_points;i++)
     {
-      LOG_FILE_OPERATION(fprintf(file_out,"%.15le\n",gsl_vector_get(Wk, i));fflush(file_out);)
+      SPECIAL_LOG_FILE_OPERATION(fprintf(file_out,"%.15le\n",gsl_vector_get(Wk, i));fflush(file_out);)
     }
-    LOG_FILE_OPERATION(fclose(file_out);)
+    SPECIAL_LOG_FILE_OPERATION(fclose(file_out);)
 
     LOG_FILE_OPERATION(file_out=fopen_log( "W_inv_control.txt","a", center);)//for control - output of K^(-1)*K
     for(i=0;i<pC->N_valid_points;i++)
@@ -541,7 +548,7 @@ double delta_width_calculation(gsl_vector* Q, double center, correlator* pC)
     if(kernel_switcher!=2)
 	gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
     else
-	gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w1, &int_result, &int_error); 
+	gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w1, &int_result, &int_error); 
     LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\n",center, int_result, int_error); fflush(file_out);)
    gsl_integration_workspace_free (w1);
   LOG_FILE_OPERATION(fclose(file_out);)

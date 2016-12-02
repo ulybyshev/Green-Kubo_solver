@@ -56,13 +56,17 @@ double kernel_DOS_odd(double omega, int beta, int euclidean_time)
 //lattice version of kernel_DOS (takes into account time discretization)
 double kernel_lattice_DOS_even(double omega, int beta, int  euclidean_time)
 {
-    return    (lattice_exp(-omega, euclidean_time)* (1.0+lattice_exp(omega, beta)) + lattice_exp(omega, euclidean_time)* (1.0+lattice_exp(-omega, beta)) ) / ( ( 1.0+ lattice_exp(-omega, beta) ) *(1.0+ lattice_exp (omega, beta) ) );
+    double lat_exp_beta=lattice_exp(omega, beta);
+    double lat_exp_beta1=lattice_exp(-omega, beta);
+    return  (lattice_exp(-omega, euclidean_time)* (1.0+lat_exp_beta) + lattice_exp(omega, euclidean_time)* (1.0+lat_exp_beta1)) / ( ( 1.0+ lat_exp_beta1 ) *(1.0+ lat_exp_beta ) );
 }
 
 //lattice version of kernel_DOS (takes into account time discretization)
 //odd version of the kernel for non-symmetrical case
 double kernel_lattice_DOS_odd(double omega, int beta, int  euclidean_time)
 {
-    return    (lattice_exp(-omega, euclidean_time)* (1.0+lattice_exp(omega, beta)) - lattice_exp(omega, euclidean_time)* (1.0+lattice_exp(-omega, beta)) ) / ( ( 1.0+ lattice_exp(-omega, beta) ) *(1.0+ lattice_exp (omega, beta) ) );
+    double lat_exp_beta=lattice_exp(omega, beta);
+    double lat_exp_beta1=lattice_exp(-omega, beta);
+    return (lattice_exp(-omega, euclidean_time)* (1.0+lat_exp_beta) - lattice_exp(omega, euclidean_time)* (1.0+lat_exp_beta1))/ ( ( 1.0+ lat_exp_beta1 ) *(1.0+ lat_exp_beta ) );
 }
 

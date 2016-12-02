@@ -48,7 +48,16 @@ covariance matrix should be calculated for symmetrized correlator (size of the m
  int flag_exclude_delta_function (0 if not exclude - then the next parameter is not taken into account, 1 - exclude starting from the count_start iteration in center) and count_start
  1  2
  
+
+More detailes about settin up the parameters
  
+ lambda regularization: the following set up is possible:
+  [0] - without regularization, [1 lambda] - reg. with covariance matrix   [2 lambda] - we neglect eigenvalues of W lees than lambda,
+   [-1 rel_error]  or [-2 rel_error] - when program tries to set up the lambda to fit the stated value of relative error
+   
+
+
+
  
 output - all dimensional quantities in units of temperature
 

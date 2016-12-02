@@ -35,12 +35,14 @@ double omega_plot_delta=0.01;
 double omega_plot_limit=30.0;
 
 //==0 if  L-regularization is not introduced
-//==1 if regularization through addition of covariance matrix is introduced  (1-\lambda) S_{ij}
-//==2 if regularization through neglecting all eigenvalues of W kernel less than \lambda
+//==1 if regularization through addition of covariance matrix is introduced  (1-\lambda) S_{ij}    (and -1 if lambda should be choosen automatically)
+//==2 if regularization through neglecting all eigenvalues of W kernel less than \lambda  (and -2 if lambda should be choosen automatically)
 int flag_lambda_regularization=0;
 
 //regularization constant
 double lambda=1.0;
+
+double relative_error=0.1;//if some value of relative error is ordered and the program should set proper lambda value automatically
 
 //initial position of the center of resolution functions
 double center_start=0.00;
@@ -56,18 +58,6 @@ double center_delta=3.0;
 //==2 if we take into account averages over intervals
 int flag_model=0;
 
-//number of points which is really taken into account (in case of intervals one interval is counted as one point)
-//int N_valid_points;
-
-//array of point numbers which are taken into account
-//int* points_numbers;
-
-//int N_intervals;
-//interval *interval_numbers;
-
-//int Nt_2_pre;
-//double dNt_2_pre;
-
 //==0 if we impose additional requirement on resolution functions to be zero at zero frequency
 int flag_exclude_delta=0;
 
@@ -76,5 +66,8 @@ int count_start_exclude;
 
 //global constant for performing the output in various log files
 bool flag_log_output;
+//for the most important logs
+bool special_flag_log_output;
 
+int limit_power=-1;//corresponding to the minimal value of lambda=0.9 = 1-10 ^{-1} for regularization with covariance matrix
 
