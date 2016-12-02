@@ -170,7 +170,7 @@ void R_integration(calc_structures* pA,correlator* pC)
 
     int t;
     FILE* file_out;
-    file_out=fopen_control("R_control.txt","w");
+    LOG_FILE_OPERATION(file_out=fopen_control("R_control.txt","w");)
     
     {
 	gsl_integration_workspace * w  = gsl_integration_workspace_alloc (N_int_steps);
@@ -189,11 +189,12 @@ void R_integration(calc_structures* pA,correlator* pC)
 	    	    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w, &int_result, &int_error); 
 	    }
 	    gsl_vector_set(pA->R,t-1,int_result);
-	    fprintf(file_out,"%d\t%.15le\t%.15le\n", t, int_result, int_error); fflush(file_out);
+	    
+	    LOG_FILE_OPERATION(fprintf(file_out,"%d\t%.15le\t%.15le\n", t, int_result, int_error); fflush(file_out);)
 	}
 	gsl_integration_workspace_free (w);
     }
-    fclose(file_out);
+    LOG_FILE_OPERATION(fclose(file_out);)
 }
 ///////
 
@@ -204,7 +205,7 @@ void omega_R_integration(calc_structures* pA,correlator* pC)
 
     int t;
     FILE* file_out;
-    file_out=fopen_control("omega_R_control.txt","w");
+    LOG_FILE_OPERATION(file_out=fopen_control("omega_R_control.txt","w");)
   
     {
 	gsl_integration_workspace * w  = gsl_integration_workspace_alloc (N_int_steps);
@@ -221,12 +222,12 @@ void omega_R_integration(calc_structures* pA,correlator* pC)
 	    else
 		gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w, &int_result, &int_error); 
     	    gsl_vector_set(pA->omega_R,t-1,int_result);
-	    fprintf(file_out,"%d\t%.15le\t%.15le\n", t, int_result, int_error); fflush(file_out);
+	    LOG_FILE_OPERATION(fprintf(file_out,"%d\t%.15le\t%.15le\n", t, int_result, int_error); fflush(file_out);)
 	}
 	gsl_integration_workspace_free (w);
 
     }
-    fclose(file_out);
+    LOG_FILE_OPERATION(fclose(file_out);)
 }
 ///////
 
@@ -236,7 +237,7 @@ void W_integration(gsl_matrix * W, correlator* pC, double center)
      double int_result, int_error;
     FILE* file_out;
     //Integration
-  file_out=fopen_log("W_calc_control.txt","a", center);
+  LOG_FILE_OPERATION(file_out=fopen_log("W_calc_control.txt","a", center);)
   gsl_integration_workspace * w1  = gsl_integration_workspace_alloc (N_int_steps);
   gsl_function F;
   F.function = &W_int;
@@ -254,10 +255,10 @@ void W_integration(gsl_matrix * W, correlator* pC, double center)
 	else
 	    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w1, &int_result, &int_error); 
       gsl_matrix_set(W,i-1,j-1,int_result);
-      fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n", i,j, int_result, int_error); fflush(file_out);
+      LOG_FILE_OPERATION(fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n", i,j, int_result, int_error); fflush(file_out);)
     }
   gsl_integration_workspace_free (w1);
-  fclose(file_out);
+  LOG_FILE_OPERATION(fclose(file_out);)
 }
 
 
@@ -272,15 +273,12 @@ void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, int center_
   gsl_matrix * W, *W_1;  //W is the full W matrix which takes into account regularization
   center=pA->center[center_count]/(2.0*pC->length);
 
-//CALCULATION W matrix
-//using numericasl integration
+//full W matrix(with regularization) and inverse W matrix
  W=gsl_matrix_alloc(pC->N_valid_points, pC->N_valid_points);
  W_1=gsl_matrix_alloc(pC->N_valid_points, pC->N_valid_points);
 
 {
  
-//    W_integration(pA->W[center_count], pC,  pA->center[center_count]/(2.0*pC->length));
-//
   //creating local copy of W matrix
   for(i=1;i<=pC->N_valid_points;i++)
     for(j=1;j<=pC->N_valid_points;j++)
@@ -300,13 +298,13 @@ void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, int center_
   }
   
   //Save
-  file_out=fopen_log("W_matrix.txt","a", center);
+  LOG_FILE_OPERATION(file_out=fopen_log("W_matrix.txt","a", center);)
   for(i=1;i<=pC->N_valid_points;i++){
     for(j=1;j<=pC->N_valid_points;j++)
-      fprintf(file_out,"%.5le\t", gsl_matrix_get(W,i-1,j-1)); fflush(file_out); 
-    fprintf(file_out,"\n"); fflush(file_out); 
+      LOG_FILE_OPERATION(fprintf(file_out,"%.5le\t", gsl_matrix_get(W,i-1,j-1)); fflush(file_out); )
+    LOG_FILE_OPERATION(fprintf(file_out,"\n"); fflush(file_out); )
   }
-  fclose(file_out);
+  LOG_FILE_OPERATION(fclose(file_out);)
 }
 
 
@@ -349,16 +347,16 @@ if (flag_lambda_regularization==2)
       par_double += gsl_matrix_get(W,i,j)*gsl_vector_get(Q, j);
     sum+= fabs(par_double / gsl_vector_get(pA->R, i) - 1.0);
   }    
-  file_out=fopen_log("Discrepancy.txt","a", center);
-  fprintf(file_out,"Discrepancy:%.15le\n",sum);fflush(file_out);
-  fclose(file_out);
+  LOG_FILE_OPERATION(file_out=fopen_log("Discrepancy.txt","a", center);)
+  LOG_FILE_OPERATION(fprintf(file_out,"Discrepancy:%.15le\n",sum);fflush(file_out);)
+  LOG_FILE_OPERATION(fclose(file_out);)
     
-  file_out=fopen_log("Q_vector.txt","a", center);
+  LOG_FILE_OPERATION(file_out=fopen_log("Q_vector.txt","a", center);)
   //Normalize Q = Q/(pA->R*Q)
   double norma=0.0;
   for(i=0;i<pC->N_valid_points;i++)
     norma +=  gsl_vector_get(Q, i)*gsl_vector_get(pA->R, i);
-  fprintf(file_out, "norma_old=%.15le\n", norma);fflush(file_out);
+  LOG_FILE_OPERATION(fprintf(file_out, "norma_old=%.15le\n", norma);fflush(file_out);)
   
   for(i=0;i<pC->N_valid_points;i++){
     par_double = gsl_vector_get(Q, i);
@@ -368,13 +366,13 @@ if (flag_lambda_regularization==2)
   par_double = 0.0;
   for(i=0;i<pC->N_valid_points;i++)
     par_double+=gsl_vector_get(Q, i)*gsl_vector_get(pA->R, i);
-  fprintf(file_out, "norma_new=%.15le\n", par_double);fflush(file_out);   
+  LOG_FILE_OPERATION(fprintf(file_out, "norma_new=%.15le\n", par_double);fflush(file_out);)   
   
   //Save Q vector
   for(i=0;i<pC->N_valid_points;i++)
-    fprintf(file_out,"%.15le\n",gsl_vector_get(Q, i));fflush(file_out);
+    LOG_FILE_OPERATION(fprintf(file_out,"%.15le\n",gsl_vector_get(Q, i));fflush(file_out);)
     
-  fclose(file_out); 
+  LOG_FILE_OPERATION(fclose(file_out); )
   gsl_vector_free(Wk);
   gsl_matrix_free(Uk);
   gsl_matrix_free(Vk);    
@@ -403,7 +401,7 @@ else
     
     gsl_linalg_SV_decomp(Uk,Vk,Wk,workT);
     
-    file_out=fopen_log("W_1_matrix.txt","a", center);//output of inverse kernel matrix
+    LOG_FILE_OPERATION(file_out=fopen_log("W_1_matrix.txt","a", center);)//output of inverse kernel matrix
     for(i=0;i<pC->N_valid_points;i++)
     {
       for(k=0;k<pC->N_valid_points;k++)
@@ -414,21 +412,21 @@ else
           par_double+=gsl_matrix_get(Vk,k,j)*gsl_matrix_get(Uk,i,j)*(1.0/gsl_vector_get(Wk,j));
         }
         gsl_matrix_set(W_1, i,k, par_double);
-        fprintf(file_out,"%.5le\t",gsl_matrix_get(W_1, i,k));fflush(file_out);
+        LOG_FILE_OPERATION(fprintf(file_out,"%.5le\t",gsl_matrix_get(W_1, i,k));fflush(file_out);)
       }
-      fprintf(file_out,"\n");fflush(file_out);
+      LOG_FILE_OPERATION(fprintf(file_out,"\n");fflush(file_out);)
     }
-    fclose(file_out);
+    LOG_FILE_OPERATION(fclose(file_out);)
     
 
-    file_out=fopen_log("Wk_vector.txt","a", center);//output of eigenvalues of kernel matrix
+    LOG_FILE_OPERATION(file_out=fopen_log("Wk_vector.txt","a", center);)//output of eigenvalues of kernel matrix
     for(i=0;i<pC->N_valid_points;i++)
     {
-      fprintf(file_out,"%.15le\n",gsl_vector_get(Wk, i));fflush(file_out);
+      LOG_FILE_OPERATION(fprintf(file_out,"%.15le\n",gsl_vector_get(Wk, i));fflush(file_out);)
     }
-    fclose(file_out);
+    LOG_FILE_OPERATION(fclose(file_out);)
 
-    file_out=fopen_log( "W_inv_control.txt","a", center);//for control - output of K^(-1)*K
+    LOG_FILE_OPERATION(file_out=fopen_log( "W_inv_control.txt","a", center);)//for control - output of K^(-1)*K
     for(i=0;i<pC->N_valid_points;i++)
     {
       for(k=0;k<pC->N_valid_points;k++)
@@ -438,11 +436,11 @@ else
         {
           par_double+=gsl_matrix_get(W,i,j)*gsl_matrix_get(W_1,j,k);
         }
-      fprintf(file_out,"%.5le\t",par_double);fflush(file_out);
+      LOG_FILE_OPERATION(fprintf(file_out,"%.5le\t",par_double);fflush(file_out);)
       }
-      fprintf(file_out,"\n");fflush(file_out);
+      LOG_FILE_OPERATION(fprintf(file_out,"\n");fflush(file_out);)
     }
-    fclose(file_out);
+    LOG_FILE_OPERATION(fclose(file_out);)
  }//end of W_1 calculation 
  
  //vector Q calculation
@@ -471,7 +469,7 @@ else
   }
 
 //vector Q output
-  file_out=fopen_log("Q_vector.txt","a", center);
+  LOG_FILE_OPERATION(file_out=fopen_log("Q_vector.txt","a", center);)
 
 //normalization
   par_double=0.0;
@@ -479,7 +477,7 @@ else
   {
     par_double += gsl_vector_get(Q, i) * gsl_vector_get(pA->R,i);
   }
-  fprintf(file_out, "norma_old=%.15le\n", par_double);fflush(file_out);
+  LOG_FILE_OPERATION(fprintf(file_out, "norma_old=%.15le\n", par_double);fflush(file_out);)
   
   for(i=0;i<pC->N_valid_points;i++)
   {
@@ -487,7 +485,7 @@ else
   }
   for(i=0;i<pC->N_valid_points;i++)
   {
-     fprintf(file_out,"%.15le\n",gsl_vector_get(Q, i));fflush(file_out);
+     LOG_FILE_OPERATION(fprintf(file_out,"%.15le\n",gsl_vector_get(Q, i));fflush(file_out);)
   }
  ////
   par_double=0.0;
@@ -495,9 +493,9 @@ else
   {
     par_double += gsl_vector_get(Q, i) * gsl_vector_get(pA->R,i);
   }
-  fprintf(file_out, "norma_new=%.15le\n", par_double);fflush(file_out);
+  LOG_FILE_OPERATION(fprintf(file_out, "norma_new=%.15le\n", par_double);fflush(file_out);)
 
-  fclose(file_out); 
+  LOG_FILE_OPERATION(fclose(file_out);)
 
 
 
@@ -532,7 +530,7 @@ double delta_width_calculation(gsl_vector* Q, double center, correlator* pC)
   gsl_integration_workspace * w1  = gsl_integration_workspace_alloc (N_int_steps);
   FILE* file_out;
 
-  file_out=fopen_log("delta_width_control.txt","a", center);
+  LOG_FILE_OPERATION(file_out=fopen_log("delta_width_control.txt","a", center);)
 
   F.function = &delta_sq_int;
   d_parameters buffer;
@@ -544,9 +542,9 @@ double delta_width_calculation(gsl_vector* Q, double center, correlator* pC)
 	gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
     else
 	gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS41, w1, &int_result, &int_error); 
-    fprintf(file_out,"%.15le\t%.15le\t%.15le\n",center, int_result, int_error); fflush(file_out);
+    LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\n",center, int_result, int_error); fflush(file_out);)
    gsl_integration_workspace_free (w1);
-  fclose(file_out);
+  LOG_FILE_OPERATION(fclose(file_out);)
   return sqrt(int_result);
 }
 
@@ -560,7 +558,7 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
   double omega,omega_max, function_max;
   unsigned long int count=0;
 
-  file_out=fopen_log("real_delta_width_control.txt","a", center);
+  LOG_FILE_OPERATION(file_out=fopen_log("real_delta_width_control.txt","a", center);)
   for(omega=omega_plot_delta/(2.0*pC->length);omega<omega_plot_limit/(2.0*pC->length);omega+=omega_plot_delta/(2.0*pC->length))
   {
     if(count==0)
@@ -578,7 +576,7 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
       }
     count++;  
   }
-  fprintf(file_out,"omega_max=%.15le\n",omega_max*(2.0*pC->length)); fflush(file_out);
+  LOG_FILE_OPERATION(fprintf(file_out,"omega_max=%.15le\n",omega_max*(2.0*pC->length)); fflush(file_out);)
   (*start)=0.0;
  
 
@@ -592,7 +590,7 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
        break;
      }
   }
-  fprintf(file_out,"omega_start=%.15le\n",(*start)*(2.0*pC->length)); fflush(file_out);
+  LOG_FILE_OPERATION(fprintf(file_out,"omega_start=%.15le\n",(*start)*(2.0*pC->length)); fflush(file_out);)
 
 //stop calculation
   for(omega=omega_max;omega<omega_plot_limit/(2.0*pC->length);omega+=omega_plot_delta/(2.0*pC->length))
@@ -603,7 +601,7 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
        break;
      }
   }
-  fprintf(file_out,"omega_stop=%.15le\n",(*stop)*(2.0*pC->length)); fflush(file_out);
+  LOG_FILE_OPERATION(fprintf(file_out,"omega_stop=%.15le\n",(*stop)*(2.0*pC->length)); fflush(file_out);)
   (*center_real)=omega_max;;//(  (*start)   +   (*stop))/2.0;
   
   (*start)=(*start) * 2.0*pC->length;

@@ -52,6 +52,6 @@ extern int flag_exclude_delta;
 
 extern int count_start_exclude;
 
-
+extern bool flag_log_output;
 
 #endif

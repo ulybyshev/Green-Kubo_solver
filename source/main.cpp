@@ -7,7 +7,7 @@
 
 int main(int argc, char ** argv)
 {
-
+    flag_log_output=true;
     correlator C;
 
     if(parse_cmd_line(argc, argv))
@@ -83,8 +83,6 @@ int main(int argc, char ** argv)
     
     Q_initial=gsl_vector_calloc(C.N_valid_points);
   
-  
-//    for(center=center_start; center<=center_stop; center+=center_delta)
     for(count_center=0; count_center<A.N_center; count_center++)
     {
 	double center_real=A.center[count_center]/(2.0*C.length);

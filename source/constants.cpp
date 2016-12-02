@@ -74,3 +74,7 @@ int flag_exclude_delta=0;
 //number of resolution function from which we start to impose this additional requirement
 int count_start_exclude;
 
+//global constant for performing the output in various log files
+bool flag_log_output;
+
+

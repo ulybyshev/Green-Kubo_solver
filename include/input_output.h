@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include  "basic_structures.h"
 
+#define LOG_FILE_OPERATION(operation)   {if(flag_log_output){operation;}}   
+
 //open file in directory for logs
 FILE* fopen_control(const char* name, const char* aim);
 

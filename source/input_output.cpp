@@ -26,7 +26,6 @@ FILE* fopen_log(const char* name, const char* aim, double parameter)
   return file_out;
 }
 
-
 bool print_parameters(FILE* file_out, correlator* pC)
 {
     fprintf(file_out,"***********************Analytical continuation**********************\n");
@@ -92,14 +91,7 @@ bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correl
     int t,i, j,par_int;
     double par_double;
     FILE* file_out;
-    
-//    double * current_pre, *error_pre;//preliminary input
-//    gsl_matrix * S_pre;//covariance matrix (preliminary input)
 
-//    current_pre=(double*) calloc(Nt_2, sizeof(double));
-//    error_pre=(double*) calloc(Nt_2, sizeof(double));
-
-//    S_pre=gsl_matrix_calloc(Nt_2, Nt_2);
 
     for(t=1;t<=pC->N_full_points;t++)
     {
@@ -141,14 +133,6 @@ bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correl
 if(flag_model==2)//intervals
 { 
   int count1, count2;
-/*
-  Nt_2_pre=Nt_2;
-  dNt_2_pre=(double) Nt_2_pre;
-  {
-    Nt_2=N_valid_points;
-    dNt_2=(double)Nt_2;
-  } 
-*/ 
   double result=0.0;
   double temp_err=0.0;
   for(count1=0;count1<pC->N_valid_points;count1++)
@@ -200,15 +184,6 @@ else//just neglecting points (the case when we save full correlator is also here
 { 
 
   int count1, count2;
-/*
-  Nt_2_pre=Nt_2;
-  dNt_2_pre=(double) Nt_2_pre;
-  if(flag_model==1)
-  {
-    Nt_2=N_valid_points;
-    dNt_2=(double)Nt_2;
-  } 
-*/
 
   for(count1=0;count1<pC->N_valid_points;count1++)
   {
@@ -244,13 +219,6 @@ else//just neglecting points (the case when we save full correlator is also here
 }
 //end of conversion
 ///////////////////////////////////////////
-///////////////////////////////////////////
-/*
-  
-    gsl_matrix_free(S_pre);
-    free(current_pre);
-    free(error_pre);
-  */
     return true;
 }
 
