@@ -52,8 +52,11 @@ void R_integration(calc_structures* pA,correlator* pC);
 //integration to obtain omega_R vector
 void omega_R_integration(calc_structures* pA,correlator* pC);
 
+//calcualtion of integral part of W matrix (except  lambda-regularization)
+void W_integration(gsl_matrix * W, correlator* pC, double center);
+
 //calculation of Q vector
-void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, double center);
+void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, int center_count);
 
 
 void calculate_rho(gsl_vector* Q, correlator* pC, double* rho, double* rho_stat_err);

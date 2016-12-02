@@ -1,4 +1,5 @@
 #include "basic_structures.h"
+#include "constants.h"
 
 interval::interval(int size_interval)
 {
@@ -137,12 +138,29 @@ calc_structures::calc_structures(int N_t)
     length=(double)N_t;
     R=gsl_vector_alloc(N_t);
     omega_R=gsl_vector_alloc(N_t);
+    
+    int i;
+    N_center=(int) ((center_stop-center_start)/center_delta);
+    center=(double*) calloc(N_center, sizeof(double));
+
+    center[0]=center_start;
+    for(i=1; i<N_center; i++)
+	center[i]=center[i-1]+center_delta;
+
+    W=(gsl_matrix**) calloc(N_center, sizeof(gsl_matrix*));
+    for(i=0; i<N_center; i++)
+	W[i]=gsl_matrix_alloc(N_t_points, N_t_points);    
 }    
 calc_structures::~calc_structures()
 {
     gsl_vector_free(R);
     gsl_vector_free(omega_R);
-
+    free(center);
+    int i;
+    for(i=0; i<N_center; i++)
+	gsl_matrix_free(W[i]);
+    free(W);
+    
 }
 
 

@@ -50,12 +50,17 @@ public:
 class calc_structures
 {
 public:
-    int N_t_points;
+    int N_t_points;//number of valid on correlator - equal to the size of W matrix
     double length;
     gsl_vector * R;
     gsl_vector * omega_R; 
+    
+    int N_center;//number of resolution functions
+    double* center;//arrays for values of the centersof resolution functions
+    
+    gsl_matrix** W;//array of pointers for the "integral" part of W matrix
 
-    calc_structures(int N_t);
+    calc_structures(int N_t);//values of center_start and center_stop are global
     ~calc_structures();
 };
 

@@ -55,9 +55,17 @@ int main(int argc, char ** argv)
     R_integration( &A, &C);
     omega_R_integration( &A, &C);
 
+//calculation of integrals in W matrix
+    int count_center=0, i;
+    for(count_center=0; count_center<A.N_center; count_center++)
+    {
+	W_integration(A.W[count_center], &C,  A.center[count_center]/(2.0*C.length));
+    }
+
+
+
+
 //now the calculation of conductivity is launched
-
-
 {
     //clean file before output
     file_out_excl=fopen_control("rho_excl.txt", "w");  
@@ -65,7 +73,7 @@ int main(int argc, char ** argv)
     file_out=fopen_control("rho.txt", "w");  
     fclose(file_out);
     
-    int count_center=0, i;
+
     double B, B0;
     
     gsl_vector * Q;
@@ -76,15 +84,16 @@ int main(int argc, char ** argv)
     Q_initial=gsl_vector_calloc(C.N_valid_points);
   
   
-    for(center=center_start; center<=center_stop; center+=center_delta)
+//    for(center=center_start; center<=center_stop; center+=center_delta)
+    for(count_center=0; count_center<A.N_center; count_center++)
     {
-	double center_real=center/(2.0*C.length);
+	double center_real=A.center[count_center]/(2.0*C.length);
 	char file_name[1000];
-	sprintf(file_name,"delta_function_c=%3.3leT.txt", center);
+	sprintf(file_name,"delta_function_c=%3.3leT.txt", A.center[count_center]);
         Q=gsl_vector_calloc(C.N_valid_points);
 	Q_real=gsl_vector_calloc(C.N_valid_points);
 
-	calculate_Q(Q, &A, &C, center_real);
+	calculate_Q(Q, &A, &C, count_center);
 
 	if(count_center==0)
 	{
@@ -169,8 +178,8 @@ int main(int argc, char ** argv)
 	real_width1=(real_stop-real_start)/2.0;
 
 
-	fprintf(file_out,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", center, width*2.0*C.length, center1, width1, rho, rho_stat_err, start, stop);
-	fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", center, width_real*2.0*C.length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop);
+	fprintf(file_out,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", A.center[count_center], width*2.0*C.length, center1, width1, rho, rho_stat_err, start, stop);
+	fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", A.center[count_center], width_real*2.0*C.length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop);
 
 
 	fclose(file_out);
@@ -179,7 +188,6 @@ int main(int argc, char ** argv)
 
 	gsl_vector_free(Q);
 	gsl_vector_free(Q_real);
-	count_center++;
 
     }
 

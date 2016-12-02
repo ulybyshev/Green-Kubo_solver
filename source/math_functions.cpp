@@ -230,26 +230,12 @@ void omega_R_integration(calc_structures* pA,correlator* pC)
 }
 ///////
 
-
-void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, double center)
+void W_integration(gsl_matrix * W, correlator* pC, double center)
 {
-  int i,j,k;
-  
-  FILE* file_out;
-  double par_double;
-  double int_result, int_error;
-//  double omega;
-
-  gsl_matrix * W, *W_1;
-
- 
-//CALCULATION W matrix
-//using numericasl integration
- W=gsl_matrix_alloc(pC->N_valid_points, pC->N_valid_points);
- W_1=gsl_matrix_alloc(pC->N_valid_points, pC->N_valid_points);
-
-{
-  //Integration
+    int i,j;
+     double int_result, int_error;
+    FILE* file_out;
+    //Integration
   file_out=fopen_log("W_calc_control.txt","a", center);
   gsl_integration_workspace * w1  = gsl_integration_workspace_alloc (N_int_steps);
   gsl_function F;
@@ -272,6 +258,35 @@ void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, double cent
     }
   gsl_integration_workspace_free (w1);
   fclose(file_out);
+}
+
+
+void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, int center_count)
+{
+  int i,j,k;
+  double center;
+  FILE* file_out;
+  double par_double;
+  double int_result, int_error;
+
+  gsl_matrix * W, *W_1;  //W is the full W matrix which takes into account regularization
+  center=pA->center[center_count]/(2.0*pC->length);
+
+//CALCULATION W matrix
+//using numericasl integration
+ W=gsl_matrix_alloc(pC->N_valid_points, pC->N_valid_points);
+ W_1=gsl_matrix_alloc(pC->N_valid_points, pC->N_valid_points);
+
+{
+ 
+//    W_integration(pA->W[center_count], pC,  pA->center[center_count]/(2.0*pC->length));
+//
+  //creating local copy of W matrix
+  for(i=1;i<=pC->N_valid_points;i++)
+    for(j=1;j<=pC->N_valid_points;j++)
+    {
+        gsl_matrix_set(W,i-1,j-1,gsl_matrix_get(pA->W[center_count], i-1, j-1));
+    }
   
   //Regularization of the 1st type
   if (flag_lambda_regularization==1)
