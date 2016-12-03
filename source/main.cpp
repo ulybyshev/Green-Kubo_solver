@@ -3,6 +3,7 @@
 #include "parser_const_file.h"
 #include "input_output.h"
 #include "math_functions.h"
+#include "spectral_func.h"
 
 
 int main(int argc, char ** argv)
@@ -36,8 +37,6 @@ int main(int argc, char ** argv)
 //files for input-output operations
   FILE* file_in_current;
   FILE* file_in_matrix;
-  FILE* file_out;
-  FILE* file_out_excl;
 
 
 //input and conversion of correlator and covariance matrix
@@ -59,7 +58,7 @@ int main(int argc, char ** argv)
 //calculation of integrals in W matrix
 
     fprintf(general_log,"\n W matrix calculation started\nN_center=%d\n", A.N_center);fflush(general_log);
-    int count_center=0, i;
+    int count_center=0;
     for(count_center=0; count_center<A.N_center; count_center++)
     {
 	fprintf(general_log,"count_center=%d\n", count_center);fflush(general_log);
@@ -73,140 +72,17 @@ int main(int argc, char ** argv)
     {
 	lambda_final=cov_reg_lambda_definition(&C, &A,  &flag_limit, general_log);
 	fprintf(general_log,"\n\nFinal lambda=%.15le\nfinal_flag_limit=%d\n", lambda_final, flag_limit);fflush(general_log);
+        lambda=lambda_final;
     }
-
-
-special_flag_log_output=true;
-//now the final calculation of spectral function is launched
-{
+    
+    special_flag_log_output=true;
+    
+    //now the final calculation of spectral function is launched for the found value of lambda
+    FILE* file_out_rho;
     //clean file before output
-    file_out_excl=fopen_control("rho_excl.txt", "w");  
-    fclose(file_out_excl);
-    file_out=fopen_control("rho.txt", "w");  
-    fclose(file_out);
-    
-
-    double B, B0;
-    
-    gsl_vector * Q;
-    gsl_vector* Q_real;
-    gsl_vector* Q_initial;
-    double center, omega;
-    
-    Q_initial=gsl_vector_calloc(C.N_valid_points);
-  
-    for(count_center=0; count_center<A.N_center; count_center++)
-    {
-	double center_real=A.center[count_center]/(2.0*C.length);
-	char file_name[1000];
-	sprintf(file_name,"delta_function_c=%3.3leT.txt", A.center[count_center]);
-        Q=gsl_vector_calloc(C.N_valid_points);
-	Q_real=gsl_vector_calloc(C.N_valid_points);
-
-	calculate_Q(Q, &A, &C, count_center);
-
-	if(count_center==0)
-	{
-    	    for(i=0;i<C.N_valid_points;i++)
-    		gsl_vector_set(Q_initial, i, gsl_vector_get(Q,i));
-	}
-	if(count_center==0)
-	{
-    	    for(i=0;i<C.N_valid_points;i++)
-    		gsl_vector_set(Q_real, i, gsl_vector_get(Q,i));
-	}
-	else
-	{
-    	    if(flag_exclude_delta==1 && count_center>=count_start_exclude)
-    	    {
-    		FILE* log_exclusion;
-    		log_exclusion=fopen_log("log_exclusion.txt","a", center_real);
-    		B=delta0(Q, &C);
-    		B0=delta0(Q_initial, &C);
-    		fprintf(log_exclusion,"B=%.15le\nC0=%.15le\n",B,B0);fflush(log_exclusion);
-        
-    		for(i=0;i<C.N_valid_points;i++)
-        	    gsl_vector_set(Q_real, i, gsl_vector_get(Q,i)-(B/B0)*gsl_vector_get(Q_initial,i));
-        
-    		//normalization
-    		double new_norma=0.0;
-    		for(i=0;i<C.N_valid_points;i++)
-    		{
-        	    new_norma += gsl_vector_get(Q_real, i) * gsl_vector_get(A.R,i);
-    		}
-    		fprintf(log_exclusion, "norma_old=%.15le\n", new_norma);fflush(log_exclusion);
-        
-    		for(i=0;i<C.N_valid_points;i++)
-    		{
-        	    gsl_vector_set(Q_real,i,gsl_vector_get(Q_real, i)/new_norma );
-    		}
-    		new_norma=0.0; 
-    		for(i=0;i<C.N_valid_points;i++)
-    		{
-        	    new_norma += gsl_vector_get(Q_real, i) * gsl_vector_get(A.R,i);
-    		}
-    		fprintf(log_exclusion, "norma_new=%.15le\n", new_norma);fflush(log_exclusion);
-        
-    		fclose(log_exclusion);     
-    	    }
-    	    else
-    	    {
-    		for(i=0;i<C.N_valid_points;i++)
-    		    gsl_vector_set(Q_real, i, gsl_vector_get(Q,i));
-    	    }
-	}
-	//delta function output
-	file_out=fopen_control(file_name,"w");
-	for(omega=0;omega<omega_plot_limit/(2.0*C.length);omega+=omega_plot_delta/(2.0*C.length))
-	{
-    	    fprintf(file_out,"%.15le\t%.15le\t%.15le\n", omega*2.0*C.length, delta(omega,Q, &C), delta(omega, Q_real, &C));
-    	    fflush(file_out);
-	}
-	fclose(file_out);
-
-    
-	//output of dimensionless spectral function
-	double rho, rho_stat_err, width;
-	double rho_real, rho_stat_err_real, width_real;
-	//values to really characterize delta functions 
-	double start, stop, center1, width1;
-	double real_start, real_stop, real_center1, real_width1;
-
-
-	file_out=fopen_control("rho.txt", "a");
-	file_out_excl=fopen_control("rho_excl.txt", "a");    
-	calculate_rho(Q, &C, &rho, &rho_stat_err);
-	width=delta_width_calculation(Q, center_real, &C);
-
-	delta_characteristics_calculation(&start, &stop, &center1, Q, center_real, &C);
-	width1=(stop-start)/2.0;
-
-	calculate_rho(Q_real,  &C, &rho_real, &rho_stat_err_real);
-	width_real=delta_width_calculation(Q_real, center_real, &C);
-
-	delta_characteristics_calculation(&real_start, &real_stop, &real_center1, Q_real, center_real, &C);
-	real_width1=(real_stop-real_start)/2.0;
-
-
-	fprintf(file_out,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", A.center[count_center], width*2.0*C.length, center1, width1, rho, rho_stat_err, start, stop);
-	fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", A.center[count_center], width_real*2.0*C.length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop);
-
-
-	fclose(file_out);
-	fclose(file_out_excl);
-
-
-	gsl_vector_free(Q);
-	gsl_vector_free(Q_real);
-
-    }
-
-gsl_vector_free(Q_initial);
-  
- 
-}
-
- 
+    file_out_rho=fopen_control("rho_basic.txt", "w");  
+    delta_rho_calculation_and_output(&C, &A, file_out_rho, 0);
+    fclose(file_out_rho); 
 
     printf("Ok\n");
 
