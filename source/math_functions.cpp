@@ -294,7 +294,7 @@ void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, int center_
     }
   
   //Regularization of the 1st type
-  if (flag_lambda_regularization==1)
+  if (abs(flag_lambda_regularization)==1)
   {
     for(i=1;i<=pC->N_valid_points;i++)
     for(j=1;j<=pC->N_valid_points;j++)
@@ -317,7 +317,7 @@ void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, int center_
 
 //CALCULATION Q = W^(-1) pA->R
 //SVD decomposition is used  
-if (flag_lambda_regularization==2)
+if (abs(flag_lambda_regularization)==2)
 {
   
   gsl_matrix * Uk, *Vk;
@@ -615,6 +615,97 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
   (*stop)=(*stop) * 2.0*pC->length;
   (*center_real)=(*center_real) * 2.0*pC->length;
 
+}
+
+//computation of relative error of spectral function for given regularization constant lambda
+//lambda is global variable
+double relative_error_computation(correlator* pC, calc_structures* pA)
+{
+    gsl_vector * Q;
+    int count_center;
+
+    double average_rho=0.0;
+    double average_error=0.0;
+    for(count_center=0; count_center<pA->N_center; count_center++)
+    {
+        Q=gsl_vector_calloc(pC->N_valid_points);
+	double rho, rho_stat_err;
+	calculate_Q(Q, pA, pC, count_center);
+	calculate_rho(Q, pC, &rho, &rho_stat_err);
+	average_rho+=fabs(rho);
+	average_error+=rho_stat_err;
+	gsl_vector_free(Q);
+    }
+    average_rho=average_rho/(double)(pA->N_center);
+    average_error=average_error/(double)(pA->N_center);
+
+    return average_error/average_rho;
+}
+
+
+//defines lambda to satisfy the realtive error; flag_limit=-1 if algorithm stopped at smallest regularization, flag_lambda=1 if algorithm reached largest regularization
+double cov_reg_lambda_definition(correlator* pC, calc_structures* pA, int* flag_limit, FILE* general_log)
+{
+
+    fprintf(general_log,"Lambda definition for covariance matrix regularization is started\n"); fflush(general_log);
+
+//full scan of the lambda interval
+    lambda =1.0-accuracy/gsl_matrix_get(pC->S,0,0);
+    double lambda_limit=1.0-2.0*pow(10.0, (double)limit_power);
+    double error;
+    int count_lambda=0;
+    *flag_limit=1;
+    while(lambda>lambda_limit)
+    {
+	error=relative_error_computation(pC, pA);
+	fprintf(general_log,"Lambda=%.15le\t relative error=%.15le\n",  lambda, error); fflush(general_log);
+	if (error<relative_error)
+	{
+	    if (count_lambda==0)
+		*flag_limit=-1;
+	    else
+		*flag_limit=0;
+	    break;
+	}
+	lambda=1.0-(1.0-lambda)*10.0;
+	count_lambda++;
+    }
+    if(lambda<lambda_limit)
+    {
+	lambda=lambda_limit;
+    }
+
+    fprintf(general_log,"flag_limit=%d\n",*flag_limit); fflush(general_log);
+    if ((*flag_limit)!=0)
+	return lambda;
+
+//now exact computation of lambda
+    double lambda1=lambda;
+    double lambda2=1.0-0.1*(1.0-lambda1);
+
+    fprintf(general_log,"\n****\nlambda1=%.15le\t lambda2=%.15le\n",  lambda1, lambda2); fflush(general_log);
+    
+    count_lambda=0;
+    while(1)
+    {
+	lambda=(lambda2+lambda1)*0.5;
+	error=relative_error_computation(pC, pA);
+	if(error<relative_error)
+	{
+	    lambda1=lambda;
+	}
+	else
+	{
+	    lambda2=lambda;
+	}
+	fprintf(general_log,"lambda1=%.15le\t lambda2=%.15le\n",  lambda1, lambda2); fflush(general_log);
+	fprintf(general_log,"lambda=%.15le\t relative error=%.15le\n",  lambda, error); fflush(general_log);
+	if(fabs(error-relative_error)<0.1*relative_error || count_lambda>1000)
+	    break;
+	count_lambda++;
+    }
+
+    return lambda;
 }
 
 

@@ -69,3 +69,8 @@ double delta_width_calculation(gsl_vector* Q, double center, correlator* pC);
 double delta_sq_int (double x, void* params);
 
 
+//computation of relative error of spectral function for given regularization constant lambda
+//lambda is global variable
+double relative_error_computation(correlator* pC, calc_structures* pA);
+double cov_reg_lambda_definition(correlator* pC, calc_structures* pA, int* flag_limit, FILE* general_log);
+

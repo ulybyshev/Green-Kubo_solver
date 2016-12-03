@@ -7,8 +7,8 @@
 
 int main(int argc, char ** argv)
 {
-    flag_log_output=true;
-    special_flag_log_output=true;
+    flag_log_output=false;
+    special_flag_log_output=false;
     correlator C;
 
     if(parse_cmd_line(argc, argv))
@@ -67,12 +67,17 @@ int main(int argc, char ** argv)
     }
     fprintf(general_log,"\n W matrix calculation finished\n");fflush(general_log);
 
+    double lambda_final;
+    int flag_limit;
+    if(flag_lambda_regularization==-1)
+    {
+	lambda_final=cov_reg_lambda_definition(&C, &A,  &flag_limit, general_log);
+	fprintf(general_log,"\n\nFinal lambda=%.15le\nfinal_flag_limit=%d\n", lambda_final, flag_limit);fflush(general_log);
+    }
 
 
-
-
-
-//now the final calculation of conductivity is launched
+special_flag_log_output=true;
+//now the final calculation of spectral function is launched
 {
     //clean file before output
     file_out_excl=fopen_control("rho_excl.txt", "w");  
