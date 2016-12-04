@@ -64,6 +64,20 @@ public:
     ~calc_structures();
 };
 
+class spectral_functions
+{
+public:
+    calc_structures* pCS;
+    int N_lambda;
+    double* lambda_array;
+    double** rho_array;
+    double** rho_err_array;
+    
+    spectral_functions(int N_lambda_input, double lambda_base, calc_structures* pCS);
+    ~spectral_functions();
+    
+};
+
 //in all parameters structures  we have the number of timeslice in array, NOT real time
 struct kernel_parameters
 {

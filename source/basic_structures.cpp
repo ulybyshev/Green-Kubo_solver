@@ -163,4 +163,40 @@ calc_structures::~calc_structures()
     
 }
 
+spectral_functions::spectral_functions(int N_lambda_input, double lambda_base, calc_structures* pCS_input)
+{
+    N_lambda=N_lambda_input;
+    pCS=pCS_input;
+    rho_array=(double**) calloc(N_lambda, sizeof(double*));
+    rho_err_array=(double**) calloc(N_lambda, sizeof(double*));
+    int i;
+    for(i=0;i<N_lambda;i++)
+    {
+        rho_array[i]=(double*) calloc(pCS->N_center, sizeof(double));
+        rho_err_array[i]=(double*) calloc(pCS->N_center, sizeof(double));
+    }
+    lambda_array=(double*) calloc(N_lambda, sizeof(double));
+//lambda values initialization
+    if(abs(flag_lambda_regularization)==1)//for covariance matrix regularization
+    {
+	double delta=(1.0-lambda_base)/( ((double)(N_lambda)) / 3.0);
+	for(i=0;i<N_lambda;i++)
+	{
+	    lambda_array[i]=1.0-delta*(double)(i+1);
+	}
+    }
+}
+spectral_functions::~spectral_functions()
+{
+    free(lambda_array);
+    int i;
+    for(i=0;i<N_lambda;i++)
+    {
+	free(rho_array[i]);
+	free(rho_err_array[i]);
+    }
+    free(rho_array);
+    free(rho_err_array);
+}
+    
 

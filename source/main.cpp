@@ -84,6 +84,45 @@ int main(int argc, char ** argv)
     delta_rho_calculation_and_output(&C, &A, file_out_rho, 0);
     fclose(file_out_rho); 
 
+    if(flag_lambda_regularization==-1)
+    {
+	special_flag_log_output=false;
+
+    //calculation of specral function for several values of lambda in the vicinity of the found one
+	spectral_functions Rho(Number_lambda_points, lambda_final, &A);
+	fprintf(general_log,"\n\nStudy of regularization influence\n");fflush(general_log);
+	int count_lambda=0;
+	for(count_lambda=0;count_lambda<Rho.N_lambda; count_lambda++)
+	{
+	    fprintf(general_log,"lambda=%.15le\n",Rho.lambda_array[count_lambda]);fflush(general_log);
+	    char rho_filename[1000];
+	    sprintf(rho_filename,"rho_lambda_%.15le.txt", Rho.lambda_array[count_lambda]);
+	    file_out_rho=fopen_control(rho_filename, "w");
+	    lambda=Rho.lambda_array[count_lambda];
+	    delta_rho_calculation_and_output(&C, &A, file_out_rho, 1, &Rho, count_lambda);
+	    fclose(file_out_rho);
+	}
+	//final output of dependence of spectral function on regularization
+	FILE* rho_lambda;
+	rho_lambda=fopen_control("rho_lambda.txt","w");
+	fprintf(rho_lambda,"#value of lambda\t");fflush(rho_lambda);
+	for(count_center=0;count_center<A.N_center;count_center++)
+	{
+	    fprintf(rho_lambda,"Rho for c=%.3le T\tstat error\t",A.center[count_center]);fflush(rho_lambda);
+	}
+	fprintf(rho_lambda,"\n");fflush(rho_lambda);
+	for(count_lambda=0;count_lambda<Rho.N_lambda; count_lambda++)
+	{
+	    fprintf(rho_lambda,"%.15le\t", Rho.lambda_array[count_lambda] );fflush(rho_lambda);
+	
+	    for(count_center=0;count_center<A.N_center;count_center++)
+	    {
+		fprintf(rho_lambda,"%.15le\t%.15le\t",Rho.rho_array[count_lambda][count_center], Rho.rho_err_array[count_lambda][count_center]);fflush(rho_lambda);
+	    }
+	    fprintf(rho_lambda,"\n");fflush(rho_lambda);
+	}
+	fclose(rho_lambda);
+    }
     printf("Ok\n");
 
     fclose(general_log);

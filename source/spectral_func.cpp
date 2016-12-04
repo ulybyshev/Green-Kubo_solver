@@ -97,8 +97,9 @@ double cov_reg_lambda_definition(correlator* pC, calc_structures* pA, int* flag_
     return lambda;
 }
 
-
-void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE* file_out_excl, int flag_mode)
+//flag_mode==0 - usual calculation (includes output of  the spectral function and resolution functions)
+//flag_mode==1 - only output of spectral function is performed, alongside with filling arrays for spectral function
+void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE* file_out_excl, int flag_mode, spectral_functions* pRho, int lambda_count)
 {
     FILE* file_out;
     int count_center, i;
@@ -172,16 +173,18 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
     		    gsl_vector_set(Q_real, i, gsl_vector_get(Q,i));
     	    }
 	}
-	//delta function output
-	file_out=fopen_control(file_name,"w");
-	for(omega=0;omega<omega_plot_limit/(2.0*pC->length);omega+=omega_plot_delta/(2.0*pC->length))
+	if(flag_mode==0)
 	{
-    	    fprintf(file_out,"%.15le\t%.15le\t%.15le\n", omega*2.0*pC->length, delta(omega,Q, pC), delta(omega, Q_real, pC));
-    	    fflush(file_out);
+	    //delta function output
+	    file_out=fopen_control(file_name,"w");
+	    for(omega=0;omega<omega_plot_limit/(2.0*pC->length);omega+=omega_plot_delta/(2.0*pC->length))
+	    {
+    		fprintf(file_out,"%.15le\t%.15le\t%.15le\n", omega*2.0*pC->length, delta(omega,Q, pC), delta(omega, Q_real, pC));
+    		fflush(file_out);
+	    }
+	    fclose(file_out);
 	}
-	fclose(file_out);
-
-    
+	
 	//output of dimensionless spectral function
 	double rho, rho_stat_err, width;
 	double rho_real, rho_stat_err_real, width_real;
@@ -203,6 +206,11 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
 	delta_characteristics_calculation(&real_start, &real_stop, &real_center1, Q_real, center_real, pC);
 	real_width1=(real_stop-real_start)/2.0;
 
+	if(flag_mode==1)
+	{
+		pRho->rho_array[lambda_count][count_center]=rho;
+		pRho->rho_err_array[lambda_count][count_center]=rho_stat_err;
+	}
 
 	LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width*2.0*pC->length, center1, width1, rho, rho_stat_err, start, stop);)
 	fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width_real*2.0*pC->length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop);

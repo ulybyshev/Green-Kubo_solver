@@ -50,5 +50,6 @@ extern bool special_flag_log_output;
 
 
 extern int limit_power;//corresponding to the minimal value of lambda=0.9 = 1-10 ^{-1} for regularization with covariance matrix
+extern int Number_lambda_points;//number of point in plots for lambda
 
 #endif

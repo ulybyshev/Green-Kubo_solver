@@ -71,3 +71,4 @@ bool special_flag_log_output;
 
 int limit_power=-1;//corresponding to the minimal value of lambda=0.9 = 1-10 ^{-1} for regularization with covariance matrix
 
+int Number_lambda_points=15;//number of point in plots for lambda (1/3 of them for smaller regularization and 2/3 for larger)
