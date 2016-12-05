@@ -316,7 +316,7 @@ void calculate_Q(gsl_vector* Q, calc_structures* pA, correlator* pC, int center_
 
 //CALCULATION Q = W^(-1) pA->R
 //SVD decomposition is used  
-if (abs(flag_lambda_regularization)==2)
+if (abs(flag_lambda_regularization)==2 || abs(flag_lambda_regularization)==3)
 {
   
   gsl_matrix * Uk, *Vk;
@@ -336,11 +336,24 @@ if (abs(flag_lambda_regularization)==2)
   
   //Different regularization type
   double sv0 = gsl_vector_get(Wk,0);
-  for(j=1;j<pC->N_valid_points;j++){
-    par_double = gsl_vector_get(Wk,j);
-    if(par_double < sv0*lambda)
-      par_double = 0;
-    gsl_vector_set(Wk,j,par_double);
+  for(j=1;j<pC->N_valid_points;j++)
+  {
+    if(abs(flag_lambda_regularization)==2)
+    {
+	par_double = gsl_vector_get(Wk,j);
+	if(par_double < sv0*lambda)
+    	    par_double = 0;
+	gsl_vector_set(Wk,j,par_double);
+    }
+    if(abs(flag_lambda_regularization)==3)
+    {
+	par_double = gsl_vector_get(Wk,j);
+	double ratio=par_double/sv0;
+//	double coefficient=ratio*ratio/(ratio*ratio+lambda*lambda);
+	double coefficient=ratio/(ratio+lambda);
+
+	gsl_vector_set(Wk,j,par_double/coefficient);
+    }
   }
   
   gsl_linalg_SV_solve(Uk,Vk,Wk,pA->R,Q);
