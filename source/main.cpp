@@ -68,9 +68,13 @@ int main(int argc, char ** argv)
 
     double lambda_final;
     int flag_limit;
-    if(flag_lambda_regularization==-1)
+    if(flag_lambda_regularization<0)
     {
-	lambda_final=cov_reg_lambda_definition(&C, &A,  &flag_limit, general_log);
+	if(flag_lambda_regularization==-1)
+	    lambda_final=cov_reg_lambda_definition(&C, &A,  &flag_limit, general_log);
+	else
+	    lambda_final=svd_reg_lambda_definition(&C, &A,  &flag_limit, general_log);
+	
 	fprintf(general_log,"\n\nFinal lambda=%.15le\nfinal_flag_limit=%d\n", lambda_final, flag_limit);fflush(general_log);
         lambda=lambda_final;
     }
@@ -84,7 +88,7 @@ int main(int argc, char ** argv)
     delta_rho_calculation_and_output(&C, &A, file_out_rho, 0);
     fclose(file_out_rho); 
 
-    if(flag_lambda_regularization==-1)
+    if(flag_lambda_regularization<0)
     {
 	special_flag_log_output=false;
 

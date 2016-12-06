@@ -185,6 +185,14 @@ spectral_functions::spectral_functions(int N_lambda_input, double lambda_base, c
 	    lambda_array[i]=1.0-delta*(double)(i+1);
 	}
     }
+    else
+    {
+	double delta=(lambda_base)/( ((double)(N_lambda)) / 3.0);
+	for(i=0;i<N_lambda;i++)
+	{
+	    lambda_array[i]=delta*(double)(i+1);
+	}
+    }
 }
 spectral_functions::~spectral_functions()
 {
