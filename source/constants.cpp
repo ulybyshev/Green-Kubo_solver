@@ -37,7 +37,8 @@ double omega_plot_limit=30.0;
 //==0 if  L-regularization is not introduced
 //==1 if regularization through addition of covariance matrix is introduced  (1-\lambda) S_{ij}    (and -1 if lambda should be choosen automatically)
 //==2 if regularization through neglecting all eigenvalues of W kernel less than \lambda  (and -2 if lambda should be choosen automatically) (Truncated SVD decomposition)
-//==3 if regularization through Tikhonov filtering in SVD (and -3 if lambda should be choosen automatically)
+//==3 if regularization through Tikhonov filtering in SVD (and -3 if lambda should be choosen automatically) (minimize |K x-y| +lambda |x| (suppress fluctuations in spectral funtions)
+//==4 if alternative regularization through Tikhonov filtering in SVD (and -4 if lambda should be choosen automatically) (minimize  |K x-y| +lambda |Kx| (sppress fluctuations in correlator obtained from calculated spetral function)
 int flag_lambda_regularization=0;
 
 //regularization constant
