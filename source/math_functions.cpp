@@ -535,14 +535,18 @@ else
 
 void calculate_rho(gsl_vector* Q, correlator* pC, double* rho, double* rho_stat_err)
 {
-    int i;
+  int i, j;
     double res, res_error;
-    res=0.0;
-    res_error=0.0;
+    res=0.0;        
     for(i=0;i<pC->N_valid_points;i++)
     {
 	res+=pC->corr[i]*gsl_vector_get(Q, i);
-	res_error+=pC->error[i]*pC->error[i]*gsl_vector_get(Q, i)*gsl_vector_get(Q, i);
+    }
+    res_error=0.0;
+    for(i=0;i<pC->N_valid_points;i++) {
+      for(j=0;j<pC->N_valid_points;j++) {
+	res_error+=gsl_vector_get(Q,i)*gsl_matrix_get(pC->S,i,j)*gsl_vector_get(Q,j);
+      }
     }
     res_error=sqrt(res_error);
     *rho=res;
