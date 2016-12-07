@@ -585,7 +585,7 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
   unsigned long int count=0;
 
   LOG_FILE_OPERATION(file_out=fopen_log("real_delta_width_control.txt","a", center);)
-  for(omega=omega_plot_delta/(2.0*pC->length);omega<omega_plot_limit/(2.0*pC->length);omega+=omega_plot_delta/(2.0*pC->length))
+  for(omega=0.1*omega_plot_delta/(2.0*pC->length);omega<omega_plot_limit/(2.0*pC->length);omega+=0.1*omega_plot_delta/(2.0*pC->length))
   {
     if(count==0)
       {
@@ -608,7 +608,7 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
 
 
   //start calculation
-  for(omega=omega_max;omega>omega_plot_delta/(2.0*pC->length);omega-=omega_plot_delta/(2.0*pC->length))
+  for(omega=omega_max;omega>0.1*omega_plot_delta/(2.0*pC->length);omega-=0.1*omega_plot_delta/(2.0*pC->length))
   {
     if(delta(omega,Q, pC)<function_max/2.0)
      {
@@ -619,7 +619,7 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
   LOG_FILE_OPERATION(fprintf(file_out,"omega_start=%.15le\n",(*start)*(2.0*pC->length)); fflush(file_out);)
 
 //stop calculation
-  for(omega=omega_max;omega<omega_plot_limit/(2.0*pC->length);omega+=omega_plot_delta/(2.0*pC->length))
+  for(omega=omega_max;omega<omega_plot_limit/(2.0*pC->length);omega+=0.1*omega_plot_delta/(2.0*pC->length))
   {
     if(delta(omega,Q, pC)<function_max/2.0)
      {
