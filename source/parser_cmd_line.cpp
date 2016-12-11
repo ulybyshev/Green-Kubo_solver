@@ -78,6 +78,25 @@ bool parse_cmd_line(const int& argc, char ** argv)
     }
     dNt_2=(double) Nt_2;
 
+    //jackknife samples
+    if(option_exists(argv, argv+argc, "-a")) {
+      flag_jackknife=0;
+      num_jack_samples=1;
+    }
+    else if(option_exists(argv, argv+argc, "-b")) {
+      flag_jackknife=1;
+      char *num_jack_samples_string = option_parameter(argv, argv+argc, "-t");
+      if(!num_jack_samples_string) {
+	return false;
+      }
+      else {
+	num_jack_samples=atoi(num_jack_samples_string);
+      }
+    }
+    else {
+      return false;
+    }
+
     return true;
 } 
 

@@ -1,5 +1,10 @@
 #include "constants.h"
 #include "input_output.h"
+#define MAXT 1280
+#define MAXCONF 2000
+#define SKIP_LINE(file) { while(getc(file)!='\n'); }
+#define SKIP_REMAINING_CHARS(file) SKIP_LINE(file)
+#define SKIP_BARRIER(file) { SKIP_LINE(file); SKIP_LINE(file); }
 
 FILE* fopen_control(const char* name, const char* aim)
 {
@@ -225,6 +230,123 @@ else//just neglecting points (the case when we save full correlator is also here
     return true;
 }
 
+void input_raw_data(FILE* file_in_current) {
 
+  int t_count,conf_count,t;
+  double re_g,im_g;
+  int check;
+  
+  double *temp_g=(double *)calloc(MAXT*MAXCONF,sizeof(double));
+    
+  conf_count=0;
+  int Nt=2*Nt_2;
+  while(1) {
+    t_count=0;
+    while(t_count<Nt) {
+      if(fscanf(file_in_current,"%d%lf%lf",&t,&re_g,&im_g)==3) {
+	temp_g[t_count+conf_count*Nt_2]=re_g;
+	SKIP_REMAINING_CHARS(file_in_current);
+	t_count++;
+      }
+      else {
+	fprintf(stderr,"error for config %d, time %d: %d, %f %f\n",conf_count,t_count,t,re_g,im_g);
+	exit(1);
+      }
+    }
+    conf_count++;
+    
+    SKIP_BARRIER(file_in_current);
+    if((check = fgetc(file_in_current)) == EOF) 
+      break;
+    else {
+      ungetc(check,file_in_current);
+    }      
+  }
+  
+  //set parameters
+  n_conf=conf_count;
+  dn_conf=(double)n_conf;
+  //allocate memory for raw data
+  raw_data=(double *)calloc(Nt_2*n_conf,sizeof(double));
+  for(t_count=0;t_count<Nt_2;t_count++) {
+    for(conf_count=0;conf_count<n_conf;conf_count++) {
+      raw_data[t_count+conf_count*Nt_2]=temp_g[t_count+conf_count*Nt_2];
+    }
+  }
+  free(temp_g);
+  
+}
+
+void get_jack_sample(correlator *C_jack, double *data, int jack_sample) {
+
+  int i,j,k,first_conf,last_conf;
+  int num_configs=n_conf/num_jack_samples;
+  
+  double *avg=(double *)calloc(Nt_2,sizeof(double));
+  double *err=(double *)calloc(Nt_2,sizeof(double));
+  double *cov=(double *)calloc(Nt_2*Nt_2,sizeof(double));
+  
+  for(i=0;i<Nt_2;i++) {
+    avg[i]=0.0;
+    err[i]=0.0;
+  }
+  
+  if(jack_sample==num_jack_samples) {
+    first_conf=(num_jack_samples-1)*num_configs+1;
+    last_conf=n_conf;
+    num_configs=last_conf-first_conf+1;
+  }
+  else {
+    first_conf=(jack_sample-1)*num_configs+1;
+    last_conf=jack_sample*num_configs;
+  }
+
+  //construct average and error for jackknife sample
+  for(i=1;i<=Nt_2;i++) {
+    for(j=first_conf;j<=last_conf;j++) {
+      avg[i-1]+=data[(i-1)+(j-1)*Nt_2];
+    }
+    avg[i-1]=avg[i-1]/((double)num_configs);
+    C_jack->corr_full[i-1]=avg[i-1];
+  }
+
+  for(i=1;i<=Nt_2;i++) {
+    for(j=first_conf;j<=last_conf;j++) {
+      err[i-1]+=(data[(i-1)+(j-1)*Nt_2]-avg[i])*(data[(i-1)+(j-1)*Nt_2]-avg[i]);
+    }
+    err[i-1]=sqrt(err[i-1]/((double)n_conf*(n_conf-1.0)));
+    C_jack->error_full[i-1]=err[i-1];
+  }
+
+  //construct covariance matrix
+  for(i=1;i<=Nt_2;i++)
+    for(j=1;j<=Nt_2;j++)
+    {
+      for(k=first_conf;k<=last_conf;k++) {
+	//cov_matrix[count_m1][count_m2]+=G[count_m1][count_value] * G[count_m2][count_value];
+	cov[(i-1)+(j-1)*Nt_2]+=data[(i-1)+(k-1)*Nt_2]*data[(j-1)+(k-1)*Nt_2];
+      }
+      //cov_matrix[count_m1][count_m2]=cov_matrix[count_m1][count_m2]/(double)Nvalues - av_values[count_m1]* av_values[count_m2];
+      cov[(i-1)+(j-1)*Nt_2]=cov[(i-1)+(j-1)*Nt_2]/(double)num_configs - avg[i-1]*avg[j-1];
+      gsl_matrix_set(C_jack->S_full, i-1, j-1, cov[(i-1)+(j-1)*Nt_2]);
+    }
+
+
+  free(avg);
+  free(err);
+  free(cov);
+
+  avg=(double *)calloc(C_jack->N_valid_points*C_jack->N_valid_points,sizeof(double));
+  err=(double *)calloc(C_jack->N_valid_points*C_jack->N_valid_points,sizeof(double));
+  cov=(double *)calloc(C_jack->N_valid_points*C_jack->N_valid_points,sizeof(double));
+
+  //compute for cases of intervals or just neglecting points (TBD)
+  
+    
+  free(avg);
+  free(err);
+  free(cov);
+  
+}
 
 

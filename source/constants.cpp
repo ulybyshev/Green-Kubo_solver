@@ -13,6 +13,11 @@ char parameters_filename[1024];
 int Nt_2;//number of points in correlator
 double dNt_2;//the same in double precision
 
+int flag_jackknife;
+//==0 proceeds in normal way
+//==1 computes analytic continuation for jackknife samples
+int num_jack_samples;
+
 ////////////////////////////////
 //parameters from constants file
 int kernel_switcher;
@@ -74,3 +79,8 @@ bool special_flag_log_output;
 int limit_power=-1;//corresponding to the minimal value of lambda=0.9 = 1-10 ^{-1} for regularization with covariance matrix
 
 int Number_lambda_points=15;//number of point in plots for lambda (1/3 of them for smaller regularization and 2/3 for larger)
+
+int n_conf; //number of configurations
+double dn_conf;
+
+double *raw_data;

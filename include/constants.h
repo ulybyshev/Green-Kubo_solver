@@ -15,8 +15,14 @@ extern char parameters_filename[1024];
 extern int Nt_2;//number of points in correlator
 extern double dNt_2;//the same in double precision
 
+extern int n_conf;
+extern double dn_conf;
+
 extern int kernel_switcher;
 
+extern int flag_jackknife;
+
+extern int num_jack_samples;
 
 extern double accuracy;
 
@@ -51,5 +57,7 @@ extern bool special_flag_log_output;
 
 extern int limit_power;//corresponding to the minimal value of lambda=0.9 = 1-10 ^{-1} for regularization with covariance matrix
 extern int Number_lambda_points;//number of point in plots for lambda
+
+extern double *raw_data;
 
 #endif

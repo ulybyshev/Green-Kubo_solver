@@ -8,9 +8,10 @@
 
 int main(int argc, char ** argv)
 {
+    int i,j;
     flag_log_output=false;
     special_flag_log_output=false;
-    correlator C;
+    correlator tempC;
 
     if(parse_cmd_line(argc, argv))
     {
@@ -25,35 +26,46 @@ int main(int argc, char ** argv)
 
     FILE* parameters_file;
     parameters_file=fopen(parameters_filename,"r");
-    parse_const_file(parameters_file, &C);
+    set_default_values();
+    parse_const_file(parameters_file, &tempC);
     fclose(parameters_file);
 
     FILE* general_log;
     general_log=fopen_control("general_log.txt","w");
-    print_parameters(general_log, &C);
+    print_parameters(general_log, &tempC);
     
     
 
 //files for input-output operations
   FILE* file_in_current;
-  FILE* file_in_matrix;
-
+  
 
 //input and conversion of correlator and covariance matrix
     file_in_current=fopen(correlator_filename,"r");
-    file_in_matrix=fopen(cov_matrix_filename,"r");
-
-    input_correlator_matrix(file_in_current, file_in_matrix, &C);
+    
+    //need to write a routine that reads in full list
+    input_raw_data(file_in_current);
 
     fclose(file_in_current);
-    fclose(file_in_matrix);
+    printf("n_conf %d\n",n_conf);
+    return 0;
+    
+    correlator *C=(correlator *)calloc(num_jack_samples,sizeof(correlator));
+    for(i=0;i<num_jack_samples;i++) {
+      C[i].format(tempC.N_full_points,tempC.N_valid_points);
+      for(j=0;j<tempC.N_valid_points;j++) {
+	C[i].points_numbers[j]=tempC.points_numbers[j];
+      }
+      C[i].construct_intervals();
+      //get_jack_sample(&C[i], &tempC, i+1);
+    }
     
 //now data for correlator and covariance matrix are ready
-    calc_structures A(C.N_valid_points);
+    calc_structures A(C->N_valid_points);
 
 //integration to obtain R vector
-    R_integration( &A, &C);
-    omega_R_integration( &A, &C);
+    R_integration( &A, C);
+    omega_R_integration( &A, C);
 
 //calculation of integrals in W matrix
 
@@ -62,7 +74,7 @@ int main(int argc, char ** argv)
     for(count_center=0; count_center<A.N_center; count_center++)
     {
 	fprintf(general_log,"count_center=%d\n", count_center);fflush(general_log);
-	W_integration(A.W[count_center], &C,  A.center[count_center]/(2.0*C.length));
+	W_integration(A.W[count_center], C,  A.center[count_center]/(2.0*C->length));
     }
     fprintf(general_log,"\n W matrix calculation finished\n");fflush(general_log);
 
@@ -71,9 +83,9 @@ int main(int argc, char ** argv)
     if(flag_lambda_regularization<0)
     {
 	if(flag_lambda_regularization==-1)
-	    lambda_final=cov_reg_lambda_definition(&C, &A,  &flag_limit, general_log);
+	    lambda_final=cov_reg_lambda_definition(C, &A,  &flag_limit, general_log);
 	else
-	    lambda_final=svd_reg_lambda_definition(&C, &A,  &flag_limit, general_log);
+	    lambda_final=svd_reg_lambda_definition(C, &A,  &flag_limit, general_log);
 	
 	fprintf(general_log,"\n\nFinal lambda=%.15le\nfinal_flag_limit=%d\n", lambda_final, flag_limit);fflush(general_log);
         lambda=lambda_final;
@@ -85,7 +97,7 @@ int main(int argc, char ** argv)
     FILE* file_out_rho;
     //clean file before output
     file_out_rho=fopen_control("rho_basic.txt", "w");  
-    delta_rho_calculation_and_output(&C, &A, file_out_rho, 0);
+    delta_rho_calculation_and_output(C, &A, file_out_rho, 0);
     fclose(file_out_rho); 
 
     if(flag_lambda_regularization<0)
@@ -103,7 +115,7 @@ int main(int argc, char ** argv)
 	    sprintf(rho_filename,"rho_lambda_%.15le.txt", Rho.lambda_array[count_lambda]);
 	    file_out_rho=fopen_control(rho_filename, "w");
 	    lambda=Rho.lambda_array[count_lambda];
-	    delta_rho_calculation_and_output(&C, &A, file_out_rho, 1, &Rho, count_lambda);
+	    delta_rho_calculation_and_output(C, &A, file_out_rho, 1, &Rho, count_lambda);
 	    fclose(file_out_rho);
 	}
 	//final output of dependence of spectral function on regularization
@@ -130,5 +142,6 @@ int main(int argc, char ** argv)
     printf("Ok\n");
 
     fclose(general_log);
+    free(raw_data);
     return 0;
 }
