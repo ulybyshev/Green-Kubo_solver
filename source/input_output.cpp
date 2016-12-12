@@ -244,7 +244,7 @@ void input_raw_data(FILE* file_in_current) {
     t_count=0;
     while(t_count<Nt) {
       if(fscanf(file_in_current,"%d%lf%lf",&t,&re_g,&im_g)==3) {
-	temp_g[t_count+conf_count*Nt_2]=re_g;
+	temp_g[t_count+conf_count*Nt]=re_g;
 	SKIP_REMAINING_CHARS(file_in_current);
 	t_count++;
       }
@@ -256,11 +256,12 @@ void input_raw_data(FILE* file_in_current) {
     conf_count++;
     
     SKIP_BARRIER(file_in_current);
-    if((check = fgetc(file_in_current)) == EOF) 
+    if((check = fgetc(file_in_current)) == EOF)  {
       break;
+    }
     else {
       ungetc(check,file_in_current);
-    }      
+    }
   }
   
   //set parameters
@@ -268,19 +269,24 @@ void input_raw_data(FILE* file_in_current) {
   dn_conf=(double)n_conf;
   //allocate memory for raw data
   raw_data=(double *)calloc(Nt_2*n_conf,sizeof(double));
-  for(t_count=0;t_count<Nt_2;t_count++) {
-    for(conf_count=0;conf_count<n_conf;conf_count++) {
-      raw_data[t_count+conf_count*Nt_2]=temp_g[t_count+conf_count*Nt_2];
+  //fold data
+  for(conf_count=0;conf_count<n_conf;conf_count++) {
+    for(t_count=1;t_count<(Nt_2-1);t_count++) {
+      raw_data[t_count-1+conf_count*Nt_2]=(temp_g[t_count+conf_count*Nt]+temp_g[(Nt-t_count)+conf_count*Nt])/2;
     }
+    raw_data[Nt_2-1+conf_count*Nt_2]=temp_g[Nt_2+conf_count*Nt_2];
   }
+  
   free(temp_g);
   
 }
 
-void get_jack_sample(correlator *C_jack, double *data, int jack_sample) {
+void get_jack_sample(correlator *C_jack, int jack_sample) {
 
-  int i,j,k,first_conf,last_conf;
+  int i,j,k,first_conf,last_conf, t;
   int num_configs=n_conf/num_jack_samples;
+  FILE *file_out;
+  char file_name[1000];
   
   double *avg=(double *)calloc(Nt_2,sizeof(double));
   double *err=(double *)calloc(Nt_2,sizeof(double));
@@ -304,7 +310,7 @@ void get_jack_sample(correlator *C_jack, double *data, int jack_sample) {
   //construct average and error for jackknife sample
   for(i=1;i<=Nt_2;i++) {
     for(j=first_conf;j<=last_conf;j++) {
-      avg[i-1]+=data[(i-1)+(j-1)*Nt_2];
+      avg[i-1]+=raw_data[(i-1)+(j-1)*Nt_2];
     }
     avg[i-1]=avg[i-1]/((double)num_configs);
     C_jack->corr_full[i-1]=avg[i-1];
@@ -312,41 +318,137 @@ void get_jack_sample(correlator *C_jack, double *data, int jack_sample) {
 
   for(i=1;i<=Nt_2;i++) {
     for(j=first_conf;j<=last_conf;j++) {
-      err[i-1]+=(data[(i-1)+(j-1)*Nt_2]-avg[i])*(data[(i-1)+(j-1)*Nt_2]-avg[i]);
+      err[i-1]+=(raw_data[(i-1)+(j-1)*Nt_2]-avg[i])*(raw_data[(i-1)+(j-1)*Nt_2]-avg[i]);
     }
     err[i-1]=sqrt(err[i-1]/((double)n_conf*(n_conf-1.0)));
     C_jack->error_full[i-1]=err[i-1];
   }
 
+  //output jack sample average and error
+  sprintf(file_name,"correlator_control_pre_%d.txt",jack_sample);
+  file_out=fopen_control(file_name,"w");
+  for(t=0;t<C_jack->N_full_points;t++) {
+    fprintf(file_out,"%d\t%.15le\t%.15le\n", t+1, C_jack->corr_full[t], C_jack->error_full[t]);fflush(file_out);
+  }
+  fclose(file_out);
+  
   //construct covariance matrix
   for(i=1;i<=Nt_2;i++)
     for(j=1;j<=Nt_2;j++)
     {
       for(k=first_conf;k<=last_conf;k++) {
 	//cov_matrix[count_m1][count_m2]+=G[count_m1][count_value] * G[count_m2][count_value];
-	cov[(i-1)+(j-1)*Nt_2]+=data[(i-1)+(k-1)*Nt_2]*data[(j-1)+(k-1)*Nt_2];
+	cov[(i-1)+(j-1)*Nt_2]+=raw_data[(i-1)+(k-1)*Nt_2]*raw_data[(j-1)+(k-1)*Nt_2];
       }
       //cov_matrix[count_m1][count_m2]=cov_matrix[count_m1][count_m2]/(double)Nvalues - av_values[count_m1]* av_values[count_m2];
       cov[(i-1)+(j-1)*Nt_2]=cov[(i-1)+(j-1)*Nt_2]/(double)num_configs - avg[i-1]*avg[j-1];
       gsl_matrix_set(C_jack->S_full, i-1, j-1, cov[(i-1)+(j-1)*Nt_2]);
     }
 
-
+  //output jack sample covariance matrix
+  sprintf(file_name,"cov_matrix_control_pre_%d.txt",jack_sample);
+  file_out=fopen_control(file_name,"w");
+  for(i=0;i<C_jack->N_full_points;i++){
+    for(t=0;t<C_jack->N_full_points;t++) {
+      fprintf(file_out,"%.15le\t", gsl_matrix_get(C_jack->S_full, i,t));fflush(file_out);
+    }
+    fprintf(file_out,"\n");
+  }
+  fclose(file_out);
+  
   free(avg);
   free(err);
   free(cov);
-
-  avg=(double *)calloc(C_jack->N_valid_points*C_jack->N_valid_points,sizeof(double));
-  err=(double *)calloc(C_jack->N_valid_points*C_jack->N_valid_points,sizeof(double));
-  cov=(double *)calloc(C_jack->N_valid_points*C_jack->N_valid_points,sizeof(double));
 
   //compute for cases of intervals or just neglecting points (TBD)
+  if(flag_model==2) {
+
+    int count1, count2;
+    double result=0.0;
+    double temp_err=0.0;
+    double par_double;
+    for(count1=0;count1<C_jack->N_valid_points;count1++) {
+      for(i=0;i<C_jack->interval_numbers[count1]->size;i++) {
+	result+=C_jack->corr_full[C_jack->interval_numbers[count1]->times[i]-1];
+	temp_err+=C_jack->error_full[C_jack->interval_numbers[count1]->times[i]-1]*C_jack->error_full[C_jack->interval_numbers[count1]->times[i]-1];
+      }
+      C_jack->corr[count1]=result/((double)(C_jack->interval_numbers[count1]->size));
+      C_jack->error[count1]=sqrt(temp_err)/((double)(C_jack->interval_numbers[count1]->size));
+      result=0.0;
+      temp_err=0.0; 
+    }
+
+    sprintf(file_name,"correlator_control_intervals_%d.txt",jack_sample);
+    file_out=fopen_control(file_name,"w");
+    for(t=0;t<C_jack->N_valid_points;t++) {
+      fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n" ,C_jack->points_numbers[t]-C_jack->interval_numbers[t]->size +1, C_jack->points_numbers[t], C_jack->corr[t], C_jack->error[t]);fflush(file_out);
+    }
+    fclose(file_out);
+    
+    //TODO check covariance matrix calculation
+    result=0.0;
+    for(count1=0;count1<C_jack->N_valid_points;count1++)
+      for(count2=0;count2<C_jack->N_valid_points;count2++) {
+	for(i=0;i<C_jack->interval_numbers[count1]->size;i++) {
+	  for(j=0;j<C_jack->interval_numbers[count2]->size;j++) {
+	    par_double=gsl_matrix_get(C_jack->S_full,C_jack->interval_numbers[count1]->times[i]-1,C_jack->interval_numbers[count2]->times[j]-1);
+	    result+=par_double;
+	  }
+	}
+	par_double=result/((double)(C_jack->interval_numbers[count1]->size*C_jack->interval_numbers[count2]->size));
+	gsl_matrix_set(C_jack->S,count1,count2,par_double);
+	result=0.0;
+      }
+
+    sprintf(file_name,"cov_matrix_control_intervals_%d.txt",jack_sample);
+    file_out=fopen_control(file_name,"w");
+    for(i=0;i<C_jack->N_valid_points;i++){
+      for(t=0;t<C_jack->N_valid_points;t++) {
+	fprintf(file_out,"%.15le\t", gsl_matrix_get(C_jack->S, i,t));fflush(file_out);
+      }
+      fprintf(file_out,"\n");
+    }
+    fclose(file_out);
+    
+  }
+  else { //just neglecting points (the case when we save full correlator is also here)  
+
+    int count1, count2;
+    double par_double;
+    
+    for(count1=0;count1<C_jack->N_valid_points;count1++) {
+      C_jack->corr[count1]=C_jack->corr_full[C_jack->points_numbers[count1]-1];
+      C_jack->error[count1]=C_jack->error_full[C_jack->points_numbers[count1]-1];
+    }
+
+    sprintf(file_name,"correlator_control_fin_%d.txt",jack_sample);
+    file_out=fopen_control(file_name,"w");
+    for(t=0;t<C_jack->N_valid_points;t++) {
+      fprintf(file_out,"%d\t%.15le\t%.15le\n", C_jack->points_numbers[t], C_jack->corr[t], C_jack->error[t]); fflush(file_out);
+    }
+    fclose(file_out);
+    
+    
+    for(count1=0;count1<C_jack->N_valid_points;count1++)
+      for(count2=0;count2<C_jack->N_valid_points;count2++) {
+	par_double=gsl_matrix_get(C_jack->S_full,C_jack->points_numbers[count1]-1, C_jack->points_numbers[count2]-1);
+	gsl_matrix_set(C_jack->S, count1, count2, par_double);
+      }
+
+    sprintf(file_name,"cov_matrix_control_fin_%d.txt",jack_sample);
+    file_out=fopen_control(file_name,"w");
+    for(i=0;i<C_jack->N_valid_points;i++){
+      for(t=0;t<C_jack->N_valid_points;t++) {
+	fprintf(file_out,"%.15le\t", gsl_matrix_get(C_jack->S, i,t));fflush(file_out);
+      }
+      fprintf(file_out,"\n");
+    }
+    fclose(file_out);
+  }
+  //end of conversion
+  ///////////////////////////////////////////
   
     
-  free(avg);
-  free(err);
-  free(cov);
-  
 }
 
 

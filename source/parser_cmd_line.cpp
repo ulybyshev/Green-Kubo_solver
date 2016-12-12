@@ -91,6 +91,7 @@ bool parse_cmd_line(const int& argc, char ** argv)
       }
       else {
 	num_jack_samples=atoi(num_jack_samples_string);
+	printf("num_jack_samples %d\n",num_jack_samples);
       }
     }
     else {

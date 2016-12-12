@@ -17,4 +17,4 @@ bool print_parameters(FILE* file_out, correlator* pC);
 //and simultaneous conversion from initial data to final data taking into account that we neglect some points or treat only averages over intervals
 bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correlator* pC);
 void input_raw_data(FILE* file_in_current);
-void get_jack_sample(correlator *C_jack, double *data, int jack_sample);
+void get_jack_sample(correlator *C_jack, int jack_sample);

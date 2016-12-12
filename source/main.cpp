@@ -48,7 +48,7 @@ int main(int argc, char ** argv)
 
     fclose(file_in_current);
     printf("n_conf %d\n",n_conf);
-    return 0;
+    //return 0;
     
     correlator *C=(correlator *)calloc(num_jack_samples,sizeof(correlator));
     for(i=0;i<num_jack_samples;i++) {
@@ -57,8 +57,9 @@ int main(int argc, char ** argv)
 	C[i].points_numbers[j]=tempC.points_numbers[j];
       }
       C[i].construct_intervals();
-      //get_jack_sample(&C[i], &tempC, i+1);
+      get_jack_sample(&C[i], i+1);
     }
+    return 0;
     
 //now data for correlator and covariance matrix are ready
     calc_structures A(C->N_valid_points);
