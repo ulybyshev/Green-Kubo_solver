@@ -74,6 +74,7 @@ public:
     double** rho_err_array;
     
     spectral_functions(int N_lambda_input, double lambda_base, calc_structures* pCS);
+    void format(int N_lambda_input,double lambda_base, calc_structures* pCS);
     ~spectral_functions();
     
 };

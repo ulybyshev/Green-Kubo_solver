@@ -1,6 +1,6 @@
 #include "constants.h"
 #include "input_output.h"
-#define MAXT 1280
+#define MAXT 1000
 #define MAXCONF 2000
 #define SKIP_LINE(file) { while(getc(file)!='\n'); }
 #define SKIP_REMAINING_CHARS(file) SKIP_LINE(file)
@@ -22,12 +22,18 @@ FILE* fopen_log(const char* name, const char* aim, double parameter)
   FILE* file_out;
   char final_name[1000];
   sprintf(final_name, "%s/%s", output_directory, name);
+  //printf("HELLO 1\n");
   file_out=fopen(final_name, aim);
+  //printf("HELLO 2\n");
   fprintf(file_out,"\n\n\n******************************\n");
+  //printf("HELLO 3\n");
   fprintf(file_out,"center/T=%.15le\n", parameter*2.0*dNt_2);
+  //printf("HELLO 4\n");
   fprintf(file_out,"******************************\n");
+  //printf("HELLO 5\n");
 
   fflush(file_out);
+  //printf("HELLO 6\n");
   return file_out;
 }
 
@@ -237,6 +243,10 @@ void input_raw_data(FILE* file_in_current) {
   int check;
   
   double *temp_g=(double *)calloc(MAXT*MAXCONF,sizeof(double));
+  if(temp_g==NULL) {
+    fprintf(stderr,"error allocating memory for raw data!\n");
+    exit(1);
+  }
     
   conf_count=0;
   int Nt=2*Nt_2;
@@ -245,6 +255,7 @@ void input_raw_data(FILE* file_in_current) {
     while(t_count<Nt) {
       if(fscanf(file_in_current,"%d%lf%lf",&t,&re_g,&im_g)==3) {
 	temp_g[t_count+conf_count*Nt]=re_g;
+	//printf("raw %d %d %e\n",conf_count+1,t_count,temp_g[t_count+conf_count*Nt]);
 	SKIP_REMAINING_CHARS(file_in_current);
 	t_count++;
       }
@@ -271,10 +282,12 @@ void input_raw_data(FILE* file_in_current) {
   raw_data=(double *)calloc(Nt_2*n_conf,sizeof(double));
   //fold data
   for(conf_count=0;conf_count<n_conf;conf_count++) {
-    for(t_count=1;t_count<(Nt_2-1);t_count++) {
+    for(t_count=1;t_count<Nt_2;t_count++) {
       raw_data[t_count-1+conf_count*Nt_2]=(temp_g[t_count+conf_count*Nt]+temp_g[(Nt-t_count)+conf_count*Nt])/2;
+      //printf("fold %d %d %e %e %e\n",conf_count+1,t_count,raw_data[t_count-1+conf_count*Nt_2],temp_g[t_count+conf_count*Nt],temp_g[(Nt-t_count)+conf_count*Nt]);
     }
-    raw_data[Nt_2-1+conf_count*Nt_2]=temp_g[Nt_2+conf_count*Nt_2];
+    raw_data[Nt_2-1+conf_count*Nt_2]=temp_g[Nt_2+conf_count*Nt];
+    //printf("fold %d %d %e %e %e\n",conf_count+1,Nt_2,raw_data[Nt_2-1+conf_count*Nt_2],temp_g[Nt_2+conf_count*Nt],temp_g[Nt_2+conf_count*Nt]);
   }
   
   free(temp_g);
@@ -306,6 +319,8 @@ void get_jack_sample(correlator *C_jack, int jack_sample) {
     first_conf=(jack_sample-1)*num_configs+1;
     last_conf=jack_sample*num_configs;
   }
+  //printf("jack_sample %d\n",jack_sample);
+  //printf("first_conf %d last_conf %d num_configs %d\n",first_conf,last_conf,num_configs);
 
   //construct average and error for jackknife sample
   for(i=1;i<=Nt_2;i++) {
@@ -318,9 +333,10 @@ void get_jack_sample(correlator *C_jack, int jack_sample) {
 
   for(i=1;i<=Nt_2;i++) {
     for(j=first_conf;j<=last_conf;j++) {
-      err[i-1]+=(raw_data[(i-1)+(j-1)*Nt_2]-avg[i])*(raw_data[(i-1)+(j-1)*Nt_2]-avg[i]);
+      err[i-1]+=(raw_data[(i-1)+(j-1)*Nt_2]-avg[i-1])*(raw_data[(i-1)+(j-1)*Nt_2]-avg[i-1]);
+      //printf("err %d %d %e %e\n",i,j,raw_data[(i-1)+(j-1)*Nt_2],raw_data[(i-1)+(j-1)*Nt_2]-avg[i-1]);
     }
-    err[i-1]=sqrt(err[i-1]/((double)n_conf*(n_conf-1.0)));
+    err[i-1]=sqrt(err[i-1]/((double)num_configs*(num_configs-1.0)));
     C_jack->error_full[i-1]=err[i-1];
   }
 

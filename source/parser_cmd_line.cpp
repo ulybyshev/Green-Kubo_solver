@@ -18,6 +18,31 @@ char* option_parameter (char** start, char** stop, const std::string& option)
 
 bool parse_cmd_line(const int& argc, char ** argv)
 {
+
+
+  //jackknife samples
+  if(option_exists(argv, argv+argc, "-a")) {
+    flag_jackknife=0;
+    num_jack_samples=1;
+  }
+  else if(option_exists(argv, argv+argc, "-b")) {
+    flag_jackknife=1;
+    char *num_jack_samples_string = option_parameter(argv, argv+argc, "-b");
+    if(!num_jack_samples_string) {
+      return false;
+    }
+    else {
+      num_jack_samples=atoi(num_jack_samples_string);
+      if(num_jack_samples<2) {
+	printf("Invalid number of jack knife samples!\n");
+	return false;
+      }
+    }
+  }
+  else {
+    return false;
+  }
+  
 //output directory name
     if(option_exists (argv, argv+argc, "-o"))
     {
@@ -28,7 +53,7 @@ bool parse_cmd_line(const int& argc, char ** argv)
     	sprintf(output_directory,"%s",default_directory);
     }
 
-//correlator file  name
+//correlator/raw_data file  name
     if(option_exists (argv, argv+argc, "-c"))
     {
         sprintf(correlator_filename,"%s",option_parameter(argv, argv + argc, "-c"));
@@ -37,15 +62,15 @@ bool parse_cmd_line(const int& argc, char ** argv)
     {
 	return false;
     }
-
-//covariance matrix file  name
-    if(option_exists (argv, argv+argc, "-m"))
-    {
-        sprintf(cov_matrix_filename,"%s",option_parameter(argv, argv + argc, "-m"));
-    }
-    else
-    {
+    
+    if(!flag_jackknife) {
+      //covariance matrix file  name
+      if(option_exists (argv, argv+argc, "-m")) {
+	sprintf(cov_matrix_filename,"%s",option_parameter(argv, argv + argc, "-m"));
+      }
+      else {
 	return false;
+      }
     }
     
 
@@ -77,26 +102,6 @@ bool parse_cmd_line(const int& argc, char ** argv)
 	return false;
     }
     dNt_2=(double) Nt_2;
-
-    //jackknife samples
-    if(option_exists(argv, argv+argc, "-a")) {
-      flag_jackknife=0;
-      num_jack_samples=1;
-    }
-    else if(option_exists(argv, argv+argc, "-b")) {
-      flag_jackknife=1;
-      char *num_jack_samples_string = option_parameter(argv, argv+argc, "-t");
-      if(!num_jack_samples_string) {
-	return false;
-      }
-      else {
-	num_jack_samples=atoi(num_jack_samples_string);
-	printf("num_jack_samples %d\n",num_jack_samples);
-      }
-    }
-    else {
-      return false;
-    }
 
     return true;
 } 

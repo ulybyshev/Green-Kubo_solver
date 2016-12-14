@@ -537,10 +537,10 @@ void calculate_rho(gsl_vector* Q, correlator* pC, double* rho, double* rho_stat_
 {
   int i, j;
     double res, res_error;
-    res=0.0;        
+    res=0.0;
     for(i=0;i<pC->N_valid_points;i++)
     {
-	res+=pC->corr[i]*gsl_vector_get(Q, i);
+      res+=pC->corr[i]*gsl_vector_get(Q, i);
     }
     res_error=0.0;
     double num_confs=500; //for testing purposes!
@@ -557,6 +557,7 @@ void calculate_rho(gsl_vector* Q, correlator* pC, double* rho, double* rho_stat_
 	  res_error+=gsl_vector_get(Q,i)*(gsl_matrix_get(pC->S,i,j)/num_confs)*gsl_vector_get(Q,j);
 	}
       }
+      
     }
     res_error=sqrt(res_error);
     *rho=res;
@@ -570,20 +571,20 @@ double delta_width_calculation(gsl_vector* Q, double center, correlator* pC)
   gsl_integration_workspace * w1  = gsl_integration_workspace_alloc (N_int_steps);
   FILE* file_out;
 
-  LOG_FILE_OPERATION(file_out=fopen_log("delta_width_control.txt","a", center);)
-
+  LOG_FILE_OPERATION(file_out=fopen_log("delta_width_control.txt","w", center);)
+      
   F.function = &delta_sq_int;
   d_parameters buffer;
   buffer.Q=Q;
   buffer.center=center;  
   buffer.pC=pC;
-    F.params = &buffer;
-    if(kernel_switcher!=2)
-	gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
-    else
-	gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w1, &int_result, &int_error); 
-    LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\n",center, int_result, int_error); fflush(file_out);)
-   gsl_integration_workspace_free (w1);
+  F.params = &buffer;
+  if(kernel_switcher!=2)
+    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
+  else
+    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w1, &int_result, &int_error);
+  LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\n",center, int_result, int_error); fflush(file_out);)
+  gsl_integration_workspace_free (w1);
   LOG_FILE_OPERATION(fclose(file_out);)
   return sqrt(int_result);
 }
