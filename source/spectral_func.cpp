@@ -480,7 +480,7 @@ double svd_reg_lambda_definition_jack(correlator* pC, calc_structures* pA, int* 
 //flag_mode==0 - usual calculation (includes output of  the spectral function and resolution functions)
 //flag_mode==1 - only output of spectral function is performed, alongside with filling arrays for spectral function
 //here pC and pRho are pointers to an array of correlators and spectral functions respectively
-void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA, int flag_mode, spectral_functions* pRho, int lambda_count)
+void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA, int flag_mode, spectral_functions* pRho, int lambda_count, spectral_functions* Rho_avg)
 {
     FILE* file_out;
     FILE* file_out_excl;
@@ -518,11 +518,12 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
       //file name depends on mode
       if(flag_mode==0) {
 	sprintf(file_name,"rho_basic_%d.txt",jack+1);
+	file_out_excl=fopen_control(file_name,"w");
       }
-      else {
+      /*else {
 	sprintf(file_name,"rho_lambda_%.15le_%d.txt",pRho[jack].lambda_array[lambda_count],jack+1);
-      }
-      file_out_excl=fopen_control(file_name,"w");
+	}
+	file_out_excl=fopen_control(file_name,"w");*/
       
       for(count_center=0; count_center<pA->N_center; count_center++) {
 	//printf("center %d of %d\n",count_center,pA->N_center);
@@ -641,7 +642,8 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
       
 	LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width*2.0*pC[0].length, center1, width1, rho, rho_stat_err, start, stop);)
 	//printf("INSIDE delta_rho_calculation_and_output_jack() after print to file_out\n");
-	fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width_real*2.0*pC[0].length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop);
+	  if(flag_mode==0) {
+	    fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width_real*2.0*pC[0].length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop); }
 	//printf("INSIDE delta_rho_calculation_and_output_jack() after print to file_out_excl\n");
 
 	/*if(count_center==0) {
@@ -655,8 +657,8 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
 	LOG_FILE_OPERATION(fclose(file_out);)
 
       }
-      
-      fclose(file_out_excl);
+      if(flag_mode==0) {
+	fclose(file_out_excl); }
     }
     gsl_vector_free(Q);
     gsl_vector_free(Q_real);
@@ -674,6 +676,10 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
 	err+=(jack_values[count_center+jack*pA->N_center]-avg)*(jack_values[count_center+jack*pA->N_center]-avg);
       }
       err=sqrt(err/((double)num_jack_samples*(num_jack_samples-1.0)));
+      if(flag_mode==1) {
+	Rho_avg->rho_array[lambda_count][count_center]=avg;
+	Rho_avg->rho_err_array[lambda_count][count_center]=err;
+      }
       fprintf(file_out_avg,"%.15le\t%.15le\t%.15le\n", pA->center[count_center], avg, err);
     }
 

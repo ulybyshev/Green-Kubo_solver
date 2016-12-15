@@ -189,13 +189,15 @@ int main(int argc, char ** argv)
       
       //now the final calculation of spectral function is launched for the found value of lambda
       delta_rho_calculation_and_output_jack(C, &A, 0);
-      return 0;
+      //return 0;
 
       if(flag_lambda_regularization<0) {
 	special_flag_log_output=false;
 	
 	//calculation of specral function for several values of lambda in the vicinity of the found one
 	spectral_functions *Rho=(spectral_functions *)calloc(num_jack_samples,sizeof(spectral_functions));
+	spectral_functions Rho_avg(Number_lambda_points, lambda_final, &A);
+	
 	for(i=0;i<num_jack_samples;i++) {
 	  Rho[i].format(Number_lambda_points, lambda_final, &A);
 	}
@@ -205,29 +207,31 @@ int main(int argc, char ** argv)
 	for(count_lambda=0;count_lambda<Rho[0].N_lambda; count_lambda++) {
 	  fprintf(general_log,"lambda=%.15le\n",Rho[0].lambda_array[count_lambda]);fflush(general_log);
 	  lambda=Rho[0].lambda_array[count_lambda];
-	  delta_rho_calculation_and_output_jack(&tempC, &A, 1, Rho, count_lambda);
+	  delta_rho_calculation_and_output_jack(C, &A, 1, Rho, count_lambda, &Rho_avg);
 	}
+
+	//get average Rho (loop over lambdas and centers, average over jack knife samples)
 	
 	//final output of dependence of spectral function on regularization
 	FILE* rho_lambda;
-	for(i=0;i<num_jack_samples;i++) {
-	  sprintf(file_name,"rho_lambda_%d.txt",i+1);
+	
+	  sprintf(file_name,"rho_lambda.txt");
 	  rho_lambda=fopen_control(file_name,"w");
 	  fprintf(rho_lambda,"#value of lambda\t");fflush(rho_lambda);
 	  for(count_center=0;count_center<A.N_center;count_center++) {
 	    fprintf(rho_lambda,"Rho for c=%.3le T\tstat error\t",A.center[count_center]);fflush(rho_lambda);
 	  }
 	  fprintf(rho_lambda,"\n");fflush(rho_lambda);
-	  for(count_lambda=0;count_lambda<Rho[0].N_lambda; count_lambda++) {
-	    fprintf(rho_lambda,"%.15le\t", Rho[i].lambda_array[count_lambda] );fflush(rho_lambda);
+	  for(count_lambda=0;count_lambda<Rho_avg.N_lambda; count_lambda++) {
+	    fprintf(rho_lambda,"%.15le\t", Rho_avg.lambda_array[count_lambda] );fflush(rho_lambda);
 	    
 	    for(count_center=0;count_center<A.N_center;count_center++) {
-	      fprintf(rho_lambda,"%.15le\t%.15le\t",Rho[i].rho_array[count_lambda][count_center], Rho[i].rho_err_array[count_lambda][count_center]);fflush(rho_lambda);
+	      fprintf(rho_lambda,"%.15le\t%.15le\t",Rho_avg.rho_array[count_lambda][count_center], Rho_avg.rho_err_array[count_lambda][count_center]);fflush(rho_lambda);
 	    }
 	    fprintf(rho_lambda,"\n");fflush(rho_lambda);
 	  }
 	  fclose(rho_lambda);
-	}
+	
 	free(Rho);
       }
       printf("Ok\n");   
