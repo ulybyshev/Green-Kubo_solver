@@ -12,5 +12,5 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
 double relative_error_computation_jack(correlator* pC, calc_structures *pA);
 double cov_reg_lambda_definition_jack(correlator* pC, calc_structures* pA, int* flag_limit, FILE* general_log);
 double svd_reg_lambda_definition_jack(correlator* pC, calc_structures* pA, int* flag_limit, FILE* general_log);
-void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA, int flag_mode=0, spectral_functions* pRho=NULL, int lambda_count=0);
+void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA, int flag_mode=0, spectral_functions* pRho=NULL, int lambda_count=0, spectral_functions* Rho_avg=NULL);
 
