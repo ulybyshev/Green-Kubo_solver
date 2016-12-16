@@ -571,21 +571,26 @@ double delta_width_calculation(gsl_vector* Q, double center, correlator* pC)
   gsl_integration_workspace * w1  = gsl_integration_workspace_alloc (N_int_steps);
   FILE* file_out;
 
+  
   LOG_FILE_OPERATION(file_out=fopen_log("delta_width_control.txt","w", center);)
-      
+  
   F.function = &delta_sq_int;
   d_parameters buffer;
   buffer.Q=Q;
   buffer.center=center;  
   buffer.pC=pC;
   F.params = &buffer;
+  
   if(kernel_switcher!=2)
     gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
   else
     gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w1, &int_result, &int_error);
+  
   LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\n",center, int_result, int_error); fflush(file_out);)
+  
   gsl_integration_workspace_free (w1);
   LOG_FILE_OPERATION(fclose(file_out);)
+  
   return sqrt(int_result);
 }
 
@@ -648,6 +653,7 @@ void delta_characteristics_calculation(double* start, double* stop, double* cent
   (*start)=(*start) * 2.0*pC->length;
   (*stop)=(*stop) * 2.0*pC->length;
   (*center_real)=(*center_real) * 2.0*pC->length;
+  LOG_FILE_OPERATION(fclose(file_out);)
 
 }
 

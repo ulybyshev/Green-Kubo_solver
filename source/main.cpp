@@ -18,7 +18,7 @@ void print_test(correlator *pC) {
 int main(int argc, char ** argv)
 {
     int i,j;
-    flag_log_output=true;
+    flag_log_output=false;
     special_flag_log_output=false;
     correlator tempC;
     correlator *C;
@@ -70,15 +70,7 @@ int main(int argc, char ** argv)
 	get_jack_sample(&C[i], i+1);
       }
     }
-    /*if(flag_jackknife) {
-      for(i=0;i<num_jack_samples;i++) {
-	 for(j=0;j<C[i].N_valid_points;j++) {
-	   printf("DEBUG %d %d %e %e\n",i,j,C[i].corr_full[j],C[i].error_full[j]);
-	 }
-	 
-      print_test(C);
-    }
-    return 0;*/
+
     
 //now data for correlator and covariance matrix are ready
     calc_structures A(tempC.N_valid_points);
@@ -121,17 +113,17 @@ int main(int argc, char ** argv)
 	lambda=lambda_final;
       }    
     
-      special_flag_log_output=true;
+      //special_flag_log_output=true;
       
       //now the final calculation of spectral function is launched for the found value of lambda
       FILE* file_out_rho;
       //clean file before output
-      file_out_rho=fopen_control("rho_basic.txt", "w");  
+      file_out_rho=fopen_control("rho_basic.txt", "w");
       delta_rho_calculation_and_output(&tempC, &A, file_out_rho, 0);
       fclose(file_out_rho); 
-      
       if(flag_lambda_regularization<0) {
 	special_flag_log_output=false;
+	
 	
 	//calculation of specral function for several values of lambda in the vicinity of the found one
 	spectral_functions Rho(Number_lambda_points, lambda_final, &A);
@@ -177,13 +169,7 @@ int main(int argc, char ** argv)
 	fprintf(general_log,"\n\nFinal lambda=%.15le\nfinal_flag_limit=%d\n", lambda_final, flag_limit);fflush(general_log);
 	lambda=lambda_final;
       }
-      //return 0;
-      /*for(i=0;i<num_jack_samples;i++) {
-	for(j=0;j<C[i].N_valid_points;j++) {
-	  printf("DEBUG %d %d %e %e\n",i,j,C[i].corr_full[j],C[i].error_full[j]);
-	}
-      }
-      return 0;*/
+    
       special_flag_log_output=false;
       flag_log_output=false;
       
@@ -210,8 +196,6 @@ int main(int argc, char ** argv)
 	  delta_rho_calculation_and_output_jack(C, &A, 1, Rho, count_lambda, &Rho_avg);
 	}
 
-	//get average Rho (loop over lambdas and centers, average over jack knife samples)
-	
 	//final output of dependence of spectral function on regularization
 	FILE* rho_lambda;
 	

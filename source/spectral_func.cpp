@@ -186,6 +186,7 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
   
     for(count_center=0; count_center<pA->N_center; count_center++)
     {
+      
 	double center_real=pA->center[count_center]/(2.0*pC->length);
 	char file_name[1000];
 	sprintf(file_name,"delta_function_c=%3.3leT.txt", pA->center[count_center]);
@@ -193,7 +194,7 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
 	Q_real=gsl_vector_calloc(pC->N_valid_points);
 
 	calculate_Q(Q, pA, pC, count_center);
-
+	
 	if(count_center==0)
 	{
     	    for(i=0;i<pC->N_valid_points;i++)
@@ -229,11 +230,13 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
     		{
         	    gsl_vector_set(Q_real,i,gsl_vector_get(Q_real, i)/new_norma );
     		}
+		
     		new_norma=0.0; 
     		for(i=0;i<pC->N_valid_points;i++)
     		{
         	    new_norma += gsl_vector_get(Q_real, i) * gsl_vector_get(pA->R,i);
     		}
+		
     		LOG_FILE_OPERATION(fprintf(log_exclusion, "norma_new=%.15le\n", new_norma);fflush(log_exclusion);)
         
     		LOG_FILE_OPERATION(fclose(log_exclusion);)     
@@ -254,6 +257,7 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
     		fflush(file_out);
 	    }
 	    fclose(file_out);
+	    
 	}
 	
 	//output of dimensionless spectral function
@@ -267,13 +271,13 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
 	LOG_FILE_OPERATION(file_out=fopen_control("rho_wo_excl.txt", "a");)
 	calculate_rho(Q, pC, &rho, &rho_stat_err);
 	width=delta_width_calculation(Q, center_real, pC);
-
+	
 	delta_characteristics_calculation(&start, &stop, &center1, Q, center_real, pC);
 	width1=(stop-start)/2.0;
 
 	calculate_rho(Q_real,  pC, &rho_real, &rho_stat_err_real);
 	width_real=delta_width_calculation(Q_real, center_real, pC);
-
+	
 	delta_characteristics_calculation(&real_start, &real_stop, &real_center1, Q_real, center_real, pC);
 	real_width1=(real_stop-real_start)/2.0;
 
@@ -284,11 +288,10 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
 	}
 
 	LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width*2.0*pC->length, center1, width1, rho, rho_stat_err, start, stop);)
+	
 	fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width_real*2.0*pC->length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop);
-
-
+	
 	LOG_FILE_OPERATION(fclose(file_out);)
-
 
 	gsl_vector_free(Q);
 	gsl_vector_free(Q_real);
@@ -315,14 +318,8 @@ double relative_error_computation_jack(correlator* pC, calc_structures* pA)
       for(i=0;i<num_jack_samples;i++) {
         Q=gsl_vector_calloc(pC[i].N_valid_points);
 	calculate_Q(Q, pA, &pC[i], count_center);
-	/*if(count_center==0) {
-	  int j;
-	  for(j=0;j<pC[i].N_valid_points;j++)
-	    printf("DEBUG_JACK %d %e\n",j,gsl_vector_get(Q,j));
-	    }*/
 	calculate_rho(Q, &pC[i], &rho[i], &rho_stat_err);
 	total_average_rho+=fabs(rho[i]);
-	//printf("DEBUG_JACK %d %d %e\n",count_center,i+1,rho[i]);
 	jack_avg+=fabs(rho[i]);
 	gsl_vector_free(Q);
       }
@@ -331,7 +328,6 @@ double relative_error_computation_jack(correlator* pC, calc_structures* pA)
 	jack_err+=(rho[i]-jack_avg)*(rho[i]-jack_avg);
       }
       jack_err=sqrt(jack_err/((double)num_jack_samples*(num_jack_samples-1.0)));
-      //printf("DEBUG_REL_ERROR %d %e %e\n",count_center,jack_avg,jack_err);
       total_average_error+=jack_err;
     }
     total_average_rho=total_average_rho/(double)(pA->N_center*num_jack_samples);
@@ -502,11 +498,8 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
 
     double *jack_values=(double *)calloc(num_jack_samples*pA->N_center,sizeof(double));
         
-    //printf("INSIDE delta_rho_calculation_and_output_jack()!\n");
-  
     if(flag_mode==0) {
       sprintf(file_name,"rho_basic_avg.txt");
-      //printf("INSIDE delta_rho_calculation_and_output_jack() lambda %e\n",lambda);
     }
     else {
       sprintf(file_name,"rho_lambda_%.15le_avg.txt",pRho[0].lambda_array[lambda_count]);
@@ -514,30 +507,18 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
     file_out_avg=fopen_control(file_name,"w");
     
     for(jack=0;jack<num_jack_samples;jack++) {
-      //printf("jack %d of %d\n",jack,num_jack_samples);
-      //file name depends on mode
+      
       if(flag_mode==0) {
 	sprintf(file_name,"rho_basic_%d.txt",jack+1);
 	file_out_excl=fopen_control(file_name,"w");
       }
-      /*else {
-	sprintf(file_name,"rho_lambda_%.15le_%d.txt",pRho[jack].lambda_array[lambda_count],jack+1);
-	}
-	file_out_excl=fopen_control(file_name,"w");*/
-      
+            
       for(count_center=0; count_center<pA->N_center; count_center++) {
-	//printf("center %d of %d\n",count_center,pA->N_center);
-	//if(jack==0) {
+	
 	  center_real=pA->center[count_center]/(2.0*pC[0].length);
-	  //sprintf(file_name,"delta_function_c=%3.3leT.txt", pA->center[count_center]);
-	  	  
+	  	  	  
 	  calculate_Q(Q, pA, &pC[0], count_center);
-	  /*if(count_center==0) {
-	    int j;
-	    for(j=0;j<pC[i].N_valid_points;j++)
-	      printf("DEBUG_JACK %d %e\n",j,gsl_vector_get(Q,j));
-	      }*/
-	  
+	  	  
 	  if(count_center==0) {
 	    for(i=0;i<pC[0].N_valid_points;i++)
 	      gsl_vector_set(Q_initial, i, gsl_vector_get(Q,i));
@@ -549,7 +530,7 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
 	  else {
 	    if(flag_exclude_delta==1 && count_center>=count_start_exclude) {
 	      FILE* log_exclusion;
-	      //printf("DEBUG flag_exclude_delta %d %d %d\n",flag_exclude_delta,count_center,count_start_exclude);
+	      
 	      LOG_FILE_OPERATION(log_exclusion=fopen_log("log_exclusion.txt","a", center_real);)
 	      B=delta0(Q, &pC[0]);
 	      B0=delta0(Q_initial, &pC[0]);
@@ -579,11 +560,6 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
 	    else {
 	      for(i=0;i<pC[0].N_valid_points;i++)
 		gsl_vector_set(Q_real, i, gsl_vector_get(Q,i));
-	      /*if(count_center==0) {
-		int j;
-		for(j=0;j<pC[jack].N_valid_points;j++)
-		  printf("DEBUG_JACK %d %e %e\n",j,gsl_vector_get(Q,j),gsl_vector_get(Q_real,j));
-		  }*/
 	    }
         
 	  }
@@ -599,14 +575,7 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
 	      fclose(file_out);
 	    }
 	  }
-	  //printf("INSIDE delta_rho_calculation_and_output_jack() after computing Q and Q_real\n");
-	  //}
-	  /*printf("count_center %d of %d\n",count_center,pA->N_center);
-	if(count_center==0) {
-	  int j;
-	  for(j=0;j<pC[jack].N_valid_points;j++)
-	    printf("DEBUG_JACK %d %e %e\n",j,gsl_vector_get(Q,j),gsl_vector_get(Q_real,j));
-	    }*/
+	  
 	//output of dimensionless spectral function
 	double rho, rho_stat_err, width;
 	double rho_real, rho_stat_err_real, width_real;
@@ -616,41 +585,28 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
 	
 	sprintf(file_name,"rho_wo_excl_%d.txt",jack+1);
 	LOG_FILE_OPERATION(file_out=fopen_control(file_name, "a");)
-	//printf("INSIDE delta_rho_calculation_and_output_jack() after printing to rho_wo_exl_%d.txt\n",jack+1);
-	calculate_rho(Q, &pC[jack], &rho, &rho_stat_err);
-	//printf("INSIDE delta_rho_calculation_and_output_jack() after calculate_rho() 1\n");
-	width=delta_width_calculation(Q, center_real, &pC[jack]);
-	//printf("INSIDE delta_rho_calculation_and_output_jack() after delta_width_calculation() 1\n");
 	
+	calculate_rho(Q, &pC[jack], &rho, &rho_stat_err);
+	width=delta_width_calculation(Q, center_real, &pC[jack]);
+		
 	delta_characteristics_calculation(&start, &stop, &center1, Q, center_real, &pC[jack]);
-	//printf("INSIDE delta_rho_calculation_and_output_jack() after delta_characteristics_calculation()\n");
 	width1=(stop-start)/2.0;
 	
 	calculate_rho(Q_real,  &pC[jack], &rho_real, &rho_stat_err_real);
-	//printf("INSIDE delta_rho_calculation_and_output_jack() after calculate_rho() 2\n");
 	width_real=delta_width_calculation(Q_real, center_real, &pC[jack]);
-	//printf("INSIDE delta_rho_calculation_and_output_jack() after delta_width_calculation() 2\n");
-      
+	      
 	delta_characteristics_calculation(&real_start, &real_stop, &real_center1, Q_real, center_real, &pC[jack]);
 	real_width1=(real_stop-real_start)/2.0;
-	//printf("INSIDE delta_rho_calculation_and_output_jack() after delta_characteristics_calculation()\n");
-	
+		
 	if(flag_mode==1) {
 	  pRho[jack].rho_array[lambda_count][count_center]=rho;
 	  pRho[jack].rho_err_array[lambda_count][count_center]=rho_stat_err;
 	}
       
 	LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width*2.0*pC[0].length, center1, width1, rho, rho_stat_err, start, stop);)
-	//printf("INSIDE delta_rho_calculation_and_output_jack() after print to file_out\n");
+	
 	  if(flag_mode==0) {
 	    fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width_real*2.0*pC[0].length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop); }
-	//printf("INSIDE delta_rho_calculation_and_output_jack() after print to file_out_excl\n");
-
-	/*if(count_center==0) {
-	  int j;
-	  for(j=0;j<pC[jack].N_valid_points;j++)
-	    printf("DEBUG_JACK %d %e\n",j,gsl_vector_get(Q,j));
-	    }*/
 	
 	jack_values[count_center+jack*pA->N_center]=rho_real;
       
