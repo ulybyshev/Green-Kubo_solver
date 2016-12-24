@@ -21,26 +21,35 @@ bool parse_cmd_line(const int& argc, char ** argv)
 
 
   //jackknife samples
-  if(option_exists(argv, argv+argc, "-a")) {
+  if(option_exists(argv, argv+argc, "-a")) 
+  {
     flag_jackknife=0;
     num_jack_samples=1;
+    flag_tune_blocking=false;
   }
-  else if(option_exists(argv, argv+argc, "-b")) {
+  else if(option_exists(argv, argv+argc, "-b")) 
+  {
     flag_jackknife=1;
     char *num_jack_samples_string = option_parameter(argv, argv+argc, "-b");
-    if(!num_jack_samples_string) {
+    if(!num_jack_samples_string) 
+    {
       return false;
     }
-    else {
+    else 
+    {
       num_jack_samples=atoi(num_jack_samples_string);
-      if(num_jack_samples<2) {
+      
+      if(num_jack_samples<2) 
+      {
 	printf("Invalid number of jack knife samples!\n");
 	return false;
       }
     }
   }
-  else {
-    return false;
+  else 
+  {
+    flag_jackknife=1;
+    flag_tune_blocking=true;
   }
   
 //output directory name
@@ -78,10 +87,11 @@ bool parse_cmd_line(const int& argc, char ** argv)
     if(option_exists (argv, argv+argc, "-p"))
     {
         sprintf(parameters_filename,"%s", option_parameter(argv, argv + argc, "-p"));
+        flag_constants_file=true;
     }
     else
     {
-	return false;
+	flag_constants_file=false;
     }
     
 //number of correlator points

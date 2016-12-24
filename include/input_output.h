@@ -18,3 +18,5 @@ bool print_parameters(FILE* file_out, correlator* pC);
 bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correlator* pC);
 void input_raw_data(FILE* file_in_current);
 void get_jack_sample(correlator *C_jack, int jack_sample);
+
+bool input_data_analysis(initial_data_description* D);

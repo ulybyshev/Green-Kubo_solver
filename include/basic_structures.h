@@ -79,6 +79,21 @@ public:
     
 };
 
+class initial_data_description
+{
+public:
+    int N_histories;
+    double* corr_lengths;
+    int* times;
+    double largest_corr_length;
+    initial_data_description(int N_histories_in=1);
+    void format(int N_histories_in=1);
+    ~initial_data_description();
+    double largest_corr_length_calc();
+
+};
+
+
 //in all parameters structures  we have the number of timeslice in array, NOT real time
 struct kernel_parameters
 {
@@ -100,6 +115,7 @@ struct d_parameters
   gsl_vector* Q;
   correlator* pC;
 };
+
 
 
 #endif

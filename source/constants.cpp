@@ -10,6 +10,9 @@ char correlator_filename[1024];
 char cov_matrix_filename[1024];
 char parameters_filename[1024];
 
+bool flag_tune_blocking;
+bool flag_constants_file;
+
 int Nt_2;//number of points in correlator
 double dNt_2;//the same in double precision
 
@@ -26,47 +29,47 @@ int kernel_switcher;
 //==2 for Density of States kernel taking into account discrete time
 
 //relative accuracy of numerical integration
-double accuracy=1e-8;
+double accuracy;
 
 //maxium number of steps in numberical integration
-long int N_int_steps=1000000;
+long int N_int_steps;
 
 //all dimensional quantities are in units of temperature. Correlator is assumed to be symmetrized so Nt_2 = corresponds to the half of inverse temperature
 
 //step in plots for resolution function
-double omega_plot_delta=0.01;
+double omega_plot_delta;
 
 //maximal value for plots for resolution functions
-double omega_plot_limit=30.0;
+double omega_plot_limit;
 
 //==0 if  L-regularization is not introduced
 //==1 if regularization through addition of covariance matrix is introduced  (1-\lambda) S_{ij}    (and -1 if lambda should be choosen automatically)
 //==2 if regularization through neglecting all eigenvalues of W kernel less than \lambda  (and -2 if lambda should be choosen automatically) (Truncated SVD decomposition)
 //==3 if regularization through Tikhonov filtering in SVD (and -3 if lambda should be choosen automatically) (minimize |K x-y| +lambda |x| (suppress fluctuations in spectral funtions)
 //==4 if alternative regularization through Tikhonov filtering in SVD (and -4 if lambda should be choosen automatically) (minimize  |K x-y| +lambda |Kx| (sppress fluctuations in correlator obtained from calculated spetral function)
-int flag_lambda_regularization=0;
+int flag_lambda_regularization;
 
 //regularization constant
-double lambda=1.0;
+double lambda;
 
-double relative_error=0.1;//if some value of relative error is ordered and the program should set proper lambda value automatically
+double relative_error;//if some value of relative error is ordered and the program should set proper lambda value automatically
 
 //initial position of the center of resolution functions
-double center_start=0.00;
+double center_start;
 
 //final  position of the center of resolution functions
-double center_stop=18.01;
+double center_stop;
 
 //the step in positioning of the center of resolution functions
-double center_delta=3.0;
+double center_delta;
 
 //flag_model==0 if we don't introduce regulariztion with neglecting of some points of correaltor
 //==1 if we neglect some points
 //==2 if we take into account averages over intervals
-int flag_model=0;
+int flag_model;
 
 //==0 if we impose additional requirement on resolution functions to be zero at zero frequency
-int flag_exclude_delta=0;
+int flag_exclude_delta;
 
 //number of resolution function from which we start to impose this additional requirement
 int count_start_exclude;

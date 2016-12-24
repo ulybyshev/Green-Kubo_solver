@@ -244,3 +244,42 @@ spectral_functions::~spectral_functions()
 }
     
 
+initial_data_description::initial_data_description(int N_histories_in)
+{
+    N_histories=N_histories_in;
+
+    times=new int[N_histories];
+    corr_lengths=new double[N_histories];
+
+}
+void initial_data_description::format(int N_histories_in)
+{
+    N_histories=N_histories_in;
+    delete[] times;
+    delete[] corr_lengths;
+
+    times=new int[N_histories];
+    corr_lengths=new double[N_histories];
+}
+initial_data_description::~initial_data_description()
+{
+    delete[] times;
+    delete[] corr_lengths;
+}
+
+
+double initial_data_description::largest_corr_length_calc()
+{
+    int i;
+    largest_corr_length=corr_lengths[0];
+    if(N_histories>1)
+    {
+	for(i=0;i<N_histories;i++)
+	{
+	    if (largest_corr_length<corr_lengths[i])
+	        largest_corr_length=corr_lengths[i];
+	}
+    }
+    return largest_corr_length;
+}
+

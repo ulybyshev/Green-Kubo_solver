@@ -22,6 +22,7 @@ int main(int argc, char ** argv)
     special_flag_log_output=false;
     correlator tempC;
     correlator *C;
+    initial_data_description D;
     char file_name[1000];
 
     if(parse_cmd_line(argc, argv))
@@ -34,11 +35,22 @@ int main(int argc, char ** argv)
 	return 0;
     }
 
-    FILE* parameters_file;
-    parameters_file=fopen(parameters_filename,"r");
     set_default_values();
-    parse_const_file(parameters_file, &tempC);
-    fclose(parameters_file);
+
+    if(flag_constants_file)
+    {
+	FILE* parameters_file;
+	parameters_file=fopen(parameters_filename,"r");
+	parse_const_file(parameters_file, &tempC);
+	fclose(parameters_file);
+    }
+    else
+    {
+	tempC.format(Nt_2, Nt_2);
+	for(i=0;i<tempC.N_valid_points; i++)
+	    tempC.points_numbers[i]=i+1;
+    }
+
 
     FILE* general_log;
     general_log=fopen_control("general_log.txt","w");
@@ -49,8 +61,39 @@ int main(int argc, char ** argv)
   
     file_in_current=fopen(correlator_filename,"r");
     
-    if(flag_jackknife) {
+    if(flag_jackknife) 
+    {
       input_raw_data(file_in_current); 
+      if(n_conf<4)
+	{
+	    fprintf(general_log,"ERROR: too small amount of configurations (<4). Exit.\n"); fflush(general_log);
+	    return 0;
+	}
+      if(flag_tune_blocking)
+      {
+            if(!input_data_analysis(&D))
+    	    {
+        	fprintf(general_log,"WARNING: too small amount of configurations to make appropriate data binning\n");fflush(general_log);
+    	    }
+    	    else
+    	    {
+    		fprintf(general_log,"Binning was successful\n");fflush(general_log);
+    		//output for correlation lengths
+    		{
+		    int count_time;
+		    for(count_time=0; count_time<D.N_histories;count_time++)
+		    {
+			fprintf(general_log,"autocorrelation at time %d is equal to %.15le\n", D.times[count_time], D.corr_lengths[count_time]);fflush(general_log);
+		    }
+		    fprintf(general_log, "maximum autocorrelation time is  %.15le\n",D.largest_corr_length);fflush(general_log);
+		}
+    	    }
+      }
+      fprintf(general_log,"Number of bins in data blocking \t %d\n", num_jack_samples );fflush(general_log);
+      if(num_jack_samples==N_BINS_MINIMUM && flag_tune_blocking)
+      {
+    	fprintf(general_log,"WARNING:not enough amount of data or data is too autocorrelated\n");fflush(general_log);
+      }
     }
     else {
       FILE* file_in_matrix=fopen(cov_matrix_filename,"r");

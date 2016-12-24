@@ -1,119 +1,127 @@
 #include "constants.h"
 #include "parser_const_file.h"
 
+void get_description(FILE* file, char* description)
+{
+    char in;
+    int count=0;
+    while(!feof(file))
+    {
+	in=getc(file);
+        if(in!='\n')
+        {
+	    description[count]=in;
+	    count++;
+        }
+        else
+	    break;
+    }
+}
+
+
 void parse_option(FILE* file, const char* pattern, const char* option, void* ptr)
 {
-    int i;
-    char *description=(char*)calloc(1000,sizeof(char));
-    char in;
-    int count=0;
-    
-    while(1) {
-      in=getc(file);
-      if(in!='\n') {
-	description[count]=in;
-	count++;
-      }
-      else
-	break;
+    char *description;
+    while(!feof(file))
+    {
+        description=(char*)calloc(1000,sizeof(char));
+	get_description(file, description); 
+	if(strcmp(description,option)==0)
+	{
+    	    fscanf(file, pattern, ptr);
+    	    free(description);
+    	    break;
+	}
+	free(description);
     }
-    if(strcmp(description,option)==0) {
-      fscanf(file, pattern, ptr);
-      SKIP_REMAINING_CHARS(file)
-    }
-    else {
-      ungetc('\n',file);
-      for(i=count-1;i>=0;i--)
-	ungetc(description[i],file);
-    }
-    free(description);
+    fseek(file, 0, SEEK_SET);
+
 }
 
-void parse_lambda_option(FILE* file_const)
+void parse_lambda_option(FILE* file_const, const char* option)
 {
-    int i;
     char *description=(char*)calloc(1000,sizeof(char));
-    char in;
-    int count=0;
   
-    while(1) {
-      in=getc(file_const);
-      if(in!='\n') {
-	description[count]=in;
-	count++;
-      }
-      else
-	break;
-    }
-    if(strcmp(description,"lambda")==0) {
-      fscanf(file_const, "%d", &flag_lambda_regularization);
-      if(!flag_lambda_regularization)
-	{SKIP_REMAINING_CHARS(file_const)}
-      else
+    while(!feof(file_const))
+    {
+        description=(char*)calloc(1000,sizeof(char));
+	get_description(file_const, description); 
+	if(strcmp(description,option)==0)
 	{
-	  if(flag_lambda_regularization>0)
-	    fscanf(file_const, "%le", &lambda);
-	  else
-	    fscanf(file_const, "%le", &relative_error);
-	    SKIP_REMAINING_CHARS(file_const)
-       }
+	    fscanf(file_const, "%d", &flag_lambda_regularization);
+    	    if(!flag_lambda_regularization)
+	    {SKIP_REMAINING_CHARS(file_const)}
+    	    else
+	    {
+		if(flag_lambda_regularization>0)
+		    fscanf(file_const, "%le", &lambda);
+		else
+		    fscanf(file_const, "%le", &relative_error);
+		SKIP_REMAINING_CHARS(file_const)
+    	    }
+	    
+    	    free(description);
+    	    break;
+	}
+	free(description);
     }
-    else {
-      ungetc('\n',file_const);
-      for(i=count-1;i>=0;i--)
-	ungetc(description[i],file_const);
-    }
-    free(description);
+    fseek(file_const, 0, SEEK_SET);
+
 }
 
-void parse_exclusion_option(FILE* file_const, correlator* pC)
+void parse_exclusion_option(FILE* file_const, const char* option, correlator* pC)
 {
     int i;
     char *description=(char*)calloc(1000,sizeof(char));
-    char in;
-    int count=0;
+    bool is_option=false;
 
-    while(1) {
-      in=getc(file_const);
-      if(in!='\n') {
-	description[count]=in;
-	count++;
-      }
-      else
-	break;
-    }
-    if(strcmp(description,"flag_exclude_corr")==0) {
-      fscanf(file_const, "%d", &flag_model);
-      if(!flag_model)
+
+
+    while(!feof(file_const))
+    {
+        description=(char*)calloc(1000,sizeof(char));
+	get_description(file_const, description); 
+	if(strcmp(description,option)==0)
 	{
-	  
-	  
-	  printf("Nt_2=%d\n",Nt_2);
-	  
-	  pC->format(Nt_2, Nt_2);
-	  for(i=0;i<pC->N_valid_points; i++)
+	    is_option=true;
+	    
+    	    fscanf(file_const, "%d", &flag_model);
+    	    if(!flag_model)
+	    {
+	  	  
+		printf("Nt_2=%d\n",Nt_2);
+	  	pC->format(Nt_2, Nt_2);
+		for(i=0;i<pC->N_valid_points; i++)
+		    pC->points_numbers[i]=i+1;
+		SKIP_REMAINING_CHARS(file_const)
+	    }
+    	    else
+	    {
+		int n_valid;
+		fscanf(file_const, "%d", &n_valid);
+		pC->format(Nt_2, n_valid);
+		for(i=0;i<pC->N_valid_points; i++)
+		fscanf(file_const, "%d", &(pC->points_numbers[i]));
+		SKIP_REMAINING_CHARS(file_const)
+	    }
+        
+    	    free(description);
+    	    break;
+	}
+	free(description);
+    }
+    if(!is_option)
+    {
+	pC->format(Nt_2, Nt_2);
+	for(i=0;i<pC->N_valid_points; i++)
 	    pC->points_numbers[i]=i+1;
-	  SKIP_REMAINING_CHARS(file_const)
-	    }
-      else
-	{
-	  int n_valid;
-	  fscanf(file_const, "%d", &n_valid);
-	  pC->format(Nt_2, n_valid);
-	  for(i=0;i<pC->N_valid_points; i++)
-	    fscanf(file_const, "%d", &(pC->points_numbers[i]));
-	  SKIP_REMAINING_CHARS(file_const)
-	    }
     }
-    else {
-      ungetc('\n',file_const);
-      for(i=count-1;i>=0;i--)
-	ungetc(description[i],file_const);
-    }
-    free(description);
+
+    fseek(file_const, 0, SEEK_SET);
+
 }
 
-void parse_force_zero_option(FILE* file_const)
+void parse_force_zero_option(FILE* file_const, const char* option )
 {
     int i;
     char *description=(char*)calloc(1000,sizeof(char));
@@ -149,20 +157,17 @@ void parse_force_zero_option(FILE* file_const)
 
 bool parse_const_file(FILE* file_const, correlator* pC)
 {
-    parse_option(file_const,"%d","int kernel switcher",&kernel_switcher);
-    parse_option(file_const,"%le","accuracy",&accuracy);
-    parse_option(file_const,"%ld","N_int_steps",&N_int_steps);
-    parse_option(file_const,"%le","omega_plot_delta",&omega_plot_delta);
-    parse_option(file_const,"%le","omega_plot_limit",&omega_plot_limit);
-    parse_option(file_const,"%le","center_start",&center_start);
-    parse_option(file_const,"%le","center_stop",&center_stop);
-    parse_option(file_const,"%le","center_delta",&center_delta);
-
-    parse_lambda_option(file_const);
-
-    parse_exclusion_option(file_const, pC);
-
-    parse_force_zero_option(file_const);
+    parse_option(file_const,"%d",KERNEL_SWITCHER_OPTION,&kernel_switcher);
+    parse_option(file_const,"%le",ACCURACY_OPTION ,&accuracy);
+    parse_option(file_const,"%ld",INTEGRAL_NUMBER_STEPS_OPTION ,&N_int_steps);
+    parse_option(file_const,"%le",RES_FUNCTION_PLOT_STEP_OPTION ,&omega_plot_delta);
+    parse_option(file_const,"%le",RES_FUNCTION_PLOT_LIMIT_OPTION ,&omega_plot_limit);
+    parse_option(file_const,"%le",RES_FUNCTION_CENTER_START_OPTION ,&center_start);
+    parse_option(file_const,"%le",RES_FUNCTION_CENTER_STOP_OPTION ,&center_stop);
+    parse_option(file_const,"%le",RES_FUNCTION_CENTER_DELTA_OPTION ,&center_delta);
+    parse_lambda_option(file_const, REGULARIZATION_OPTION);
+    parse_exclusion_option(file_const, EXCLUDE_CORR_POINTS_OPTION , pC);
+    parse_force_zero_option(file_const, RES_FUNCTION_ZERO_AT_ZERO_OMEGA_OPTION );
 
 //setup intervals
     pC->construct_intervals();
@@ -170,23 +175,23 @@ bool parse_const_file(FILE* file_const, correlator* pC)
     return true;
 }
 
-void set_default_values() {
-
-  flag_lambda_regularization=-4;
-  relative_error=0.1;
-  lambda=1.0e-06;
-  flag_model=0;
-  flag_exclude_delta=0;
-  count_start_exclude=0;
-  kernel_switcher=1;
-  accuracy=1.0e-12;
-  N_int_steps=1000000;
-  omega_plot_delta=1.0;
-  omega_plot_limit=Nt_2;
-  center_start=0.0;
-  center_stop=Nt_2/2;
-  center_delta=1.0;
-  flag_exclude_delta=0;
+void set_default_values()
+{
+  flag_lambda_regularization=DEFAULT_FLAG_REGULARIZATION;
+  relative_error=DEFAULT_RELATIVE_ERROR;
+  lambda=DEFAULT_LAMBDA;
+  flag_model=DEFAULT_FLAG_MODEL;
+  flag_exclude_delta=DEFAULT_FLAG_EXCLUDE_DELTA;
+  count_start_exclude=DEFAULT_COUNT_START_EXCLUDE;
+  kernel_switcher=DEFAULT_KERNEL_SWITCHER;
+  accuracy=DEFAULT_ACCURACY;
+  N_int_steps=DEFAULT_N_INT_STEPS ;
+  omega_plot_delta=DEFAULT_OMEGA_PLOT_DELTA;
+  omega_plot_limit= (double)Nt_2 *2.0;
+  center_start=DEFAULT_CENTER_START;
+  center_stop=(double)Nt_2;
+  center_delta=DEFAULT_CENTER_DELTA;
+  flag_exclude_delta=DEFAULT_FLAG_EXCLUDE_DELTA;
     
 }
 

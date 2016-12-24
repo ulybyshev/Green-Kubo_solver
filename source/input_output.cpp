@@ -1,5 +1,7 @@
 #include "constants.h"
 #include "input_output.h"
+#include "sample_sequence.h"
+
 #define MAXT 1000
 #define MAXCONF 2000
 #define SKIP_LINE(file) { while(getc(file)!='\n'); }
@@ -35,6 +37,10 @@ FILE* fopen_log(const char* name, const char* aim, double parameter)
 bool print_parameters(FILE* file_out, correlator* pC)
 {
     fprintf(file_out,"***********************Analytical continuation**********************\n");
+
+    fprintf(file_out,"flag_data_blocking=%d\n",flag_jackknife);
+
+    fprintf(file_out,"flag_tune_blocking=%d\n",flag_tune_blocking);
 
     fprintf(file_out,"number of points in symmetrized correlator:%d\n", pC->N_full_points);
 
@@ -459,4 +465,92 @@ void get_jack_sample(correlator *C_jack, int jack_sample) {
     
 }
 
+//defines automatically binsize for blocking on the basis of autocorrelation length calculation
+bool input_data_analysis(initial_data_description* D)
+{
+    int N_histories, delta, count_history;
+    bool result=true;
+    if(Nt_2<5)
+    {
+	N_histories=Nt_2;
+	delta=1;
+    }
+    else
+    {
+	N_histories=5;
+	delta=Nt_2/5;
+    }
+    
+    D->format(N_histories);
+    for(count_history=0; count_history<N_histories; count_history++)
+    {
+	D->times[count_history]=delta*count_history+1;
+    }
+	
+    sample_sequence<double>* corr_history;
+    corr_history=new sample_sequence<double>[N_histories];
+    
+    //formatting the arrays
+    
+    for(count_history=0; count_history<N_histories; count_history++)
+    {
+	corr_history[count_history].format(n_conf);
+    }
+    
+    //filling the arrays and computation statistical characteristics
+    for(count_history=0; count_history<N_histories; count_history++)
+    {
+	int count_conf, cur_time;
+	cur_time=D->times[count_history]-1;
+	for(count_conf=0;count_conf<n_conf; count_conf++)
+	{
+	    corr_history[count_history].data[count_conf]=raw_data[cur_time+count_conf*Nt_2];
+	}	
+	
+	FILE* file_output;
+	char filename[1024];
+	sprintf(filename, "correlation_study_time%d.txt", D->times[count_history]);
+	file_output=fopen_control(filename, "w");
+	if(!corr_history[count_history].autocorrelation_calc(1, file_output))
+	{
+	    result=false;
+	    fclose(file_output);
+	    break;    
+	}
+	else
+	{
+	    D->corr_lengths[count_history]=corr_history[count_history].corr_length;
+	}
+	fclose(file_output);
+	
+    }
+    if(result)
+    {
+	double c_r=D->largest_corr_length_calc();
+	double n_c=c_r*(double)N_CONF_IN_BIN;
+	num_jack_samples=(int) ( (double)n_conf/n_c ); 
+	if (num_jack_samples<N_BINS_MINIMUM)
+	{
+	    num_jack_samples=N_BINS_MINIMUM;
+	}
+	else if(num_jack_samples>N_BINS_MAXIMUM)
+	{
+	    num_jack_samples=N_BINS_MAXIMUM;
+	}
+    }
+    else
+    {    
+	if (n_conf<2*N_BINS_MINIMUM)
+	{
+	    num_jack_samples=n_conf/2;
+	}
+	else
+	{
+	    num_jack_samples=N_BINS_MINIMUM;
+	}
+    }
+    
+    delete[]corr_history;
+    return result;
+}
 
