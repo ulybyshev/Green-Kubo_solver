@@ -49,6 +49,7 @@ int main(int argc, char ** argv)
 	tempC.format(Nt_2, Nt_2);
 	for(i=0;i<tempC.N_valid_points; i++)
 	    tempC.points_numbers[i]=i+1;
+	tempC.construct_intervals();
     }
 
 

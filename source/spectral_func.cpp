@@ -184,6 +184,18 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
     
     Q_initial=gsl_vector_calloc(pC->N_valid_points);
   
+    FILE* file_rho_fin;
+
+    if(!flag_mode)
+    {
+	file_rho_fin=fopen_control("rho_final.txt","w");
+	fprintf(file_rho_fin, "#center\t spectral_function\t error\n");fflush(file_rho_fin);   
+	fprintf(file_out_excl,"#center   resolution_func_width_from_D  resolution_func_peak_pos  resolution_func_width_at_half_peak  rho  rho_err  resolution_func_start  resolution_func_stop\n");
+    }
+    else
+    {
+	fprintf(file_out_excl, "#center\t spectral_function\t error\n");fflush(file_out_excl);   
+    }
     for(count_center=0; count_center<pA->N_center; count_center++)
     {
       
@@ -251,9 +263,16 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
 	{
 	    //delta function output
 	    file_out=fopen_control(file_name,"w");
+	    fprintf(file_out,"#omega(in units of T)\t resolution_function\n");
 	    for(omega=0;omega<omega_plot_limit/(2.0*pC->length);omega+=omega_plot_delta/(2.0*pC->length))
 	    {
-    		fprintf(file_out,"%.15le\t%.15le\t%.15le\n", omega*2.0*pC->length, delta(omega,Q, pC), delta(omega, Q_real, pC));
+		double f_d;
+		if (flag_exclude_delta==1 && count_center>=count_start_exclude)
+		    f_d=delta(omega,Q_real, pC);
+		else
+		    f_d=delta(omega, Q, pC);
+		    
+    		fprintf(file_out,"%.15le\t%.15le\n", omega*2.0*pC->length, f_d);
     		fflush(file_out);
 	    }
 	    fclose(file_out);
@@ -289,7 +308,16 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
 
 	LOG_FILE_OPERATION(fprintf(file_out,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width*2.0*pC->length, center1, width1, rho, rho_stat_err, start, stop);)
 	
-	fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width_real*2.0*pC->length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop);
+	if(!flag_mode)
+	    fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\t%.15le\n", pA->center[count_center], width_real*2.0*pC->length, real_center1, real_width1,  rho_real, rho_stat_err_real, real_start, real_stop);
+	else
+	    fprintf(file_out_excl,"%.15le\t%.15le\t%.15le\n",pA->center[count_center],rho_real, rho_stat_err_real);
+
+	
+	if(!flag_mode)
+	{
+	    fprintf(file_rho_fin,"%.15le\t%.15le\t%.15le\n",pA->center[count_center],rho_real, rho_stat_err_real); fflush(file_rho_fin);
+	}
 	
 	LOG_FILE_OPERATION(fclose(file_out);)
 
@@ -299,8 +327,10 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
     }
 
 gsl_vector_free(Q_initial);
-  
- 
+	if(!flag_mode)
+	{
+	    fclose(file_rho_fin);
+	} 
 }
 
 double relative_error_computation_jack(correlator* pC, calc_structures* pA)
@@ -499,18 +529,20 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
     double *jack_values=(double *)calloc(num_jack_samples*pA->N_center,sizeof(double));
         
     if(flag_mode==0) {
-      sprintf(file_name,"rho_basic_avg.txt");
+      sprintf(file_name,"rho_final.txt");
     }
     else {
       sprintf(file_name,"rho_lambda_%.15le_avg.txt",pRho[0].lambda_array[lambda_count]);
     }
     file_out_avg=fopen_control(file_name,"w");
+    fprintf(file_out_avg, "#center\t spectral_function\t error\n");fflush(file_out_avg);   
     
     for(jack=0;jack<num_jack_samples;jack++) {
       
       if(flag_mode==0) {
 	sprintf(file_name,"rho_basic_%d.txt",jack+1);
 	file_out_excl=fopen_control(file_name,"w");
+	fprintf(file_out_excl,"#center   resolution_func_width_from_D  resolution_func_peak_pos  resolution_func_width_at_half_peak  rho  rho_err  resolution_func_start  resolution_func_stop\n");
       }
             
       for(count_center=0; count_center<pA->N_center; count_center++) {
@@ -568,8 +600,16 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
 	    if(jack==0) {
 	      sprintf(file_name,"delta_function_c=%3.3leT.txt", pA->center[count_center]);
 	      file_out=fopen_control(file_name,"w");
-	      for(omega=0;omega<omega_plot_limit/(2.0*pC[0].length);omega+=omega_plot_delta/(2.0*pC[0].length)) {
-		fprintf(file_out,"%.15le\t%.15le\t%.15le\n", omega*2.0*pC[0].length, delta(omega,Q, &pC[0]), delta(omega, Q_real, &pC[0]));
+	      fprintf(file_out,"#omega(in units of T)\t resolution_function\n");
+	      for(omega=0;omega<omega_plot_limit/(2.0*pC[0].length);omega+=omega_plot_delta/(2.0*pC[0].length)) 
+	      {
+		double f_d;
+		if (flag_exclude_delta==1 && count_center>=count_start_exclude)
+		    f_d=delta(omega,Q_real, pC);
+		else
+		    f_d=delta(omega, Q, pC);
+		    
+		fprintf(file_out,"%.15le\t%.15le\n", omega*2.0*pC[0].length, f_d);
 		fflush(file_out);
 	      }
 	      fclose(file_out);

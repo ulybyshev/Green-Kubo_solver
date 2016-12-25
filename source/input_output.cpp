@@ -116,6 +116,7 @@ bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correl
     }
 
     file_out=fopen_control("correlator_control_pre.txt","w");
+    fprintf(file_out,"#time\t correlator_Re\t  error_Re\n");
     for(t=0;t<pC->N_full_points;t++)
     {
 	fprintf(file_out,"%d\t%.15le\t%.15le\n", t+1, pC->corr_full[t], pC->error_full[t]);fflush(file_out);
@@ -163,6 +164,7 @@ if(flag_model==2)//intervals
   }
 
   file_out=fopen_control("correlator_control_intervals.txt","w");
+  fprintf(file_out,"#interval_number\t average_correlator_Re\t  error_Re\n");
   for(t=0;t<pC->N_valid_points;t++)
   {
     fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n" ,pC->points_numbers[t]-pC->interval_numbers[t]->size +1, pC->points_numbers[t], pC->corr[t], pC->error[t]);fflush(file_out);
@@ -208,6 +210,7 @@ else//just neglecting points (the case when we save full correlator is also here
 
 
   file_out=fopen_control("correlator_control_fin.txt","w");
+  fprintf(file_out,"#time\t correlator_Re\t  error_Re\n");
   for(t=0;t<pC->N_valid_points;t++)
   {
     fprintf(file_out,"%d\t%.15le\t%.15le\n", pC->points_numbers[t], pC->corr[t], pC->error[t]); fflush(file_out);
@@ -341,6 +344,8 @@ void get_jack_sample(correlator *C_jack, int jack_sample) {
   //output jack sample average and error
   sprintf(file_name,"correlator_control_pre_%d.txt",jack_sample);
   file_out=fopen_control(file_name,"w");
+  fprintf(file_out,"#time\t correlator_Re\t  error_Re\n");
+
   for(t=0;t<C_jack->N_full_points;t++) {
     fprintf(file_out,"%d\t%.15le\t%.15le\n", t+1, C_jack->corr_full[t], C_jack->error_full[t]);fflush(file_out);
   }
@@ -394,6 +399,8 @@ void get_jack_sample(correlator *C_jack, int jack_sample) {
 
     sprintf(file_name,"correlator_control_intervals_%d.txt",jack_sample);
     file_out=fopen_control(file_name,"w");
+    fprintf(file_out,"#interval_number\t average_correlator_Re\t  error_Re\n");
+
     for(t=0;t<C_jack->N_valid_points;t++) {
       fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n" ,C_jack->points_numbers[t]-C_jack->interval_numbers[t]->size +1, C_jack->points_numbers[t], C_jack->corr[t], C_jack->error[t]);fflush(file_out);
     }
@@ -437,6 +444,7 @@ void get_jack_sample(correlator *C_jack, int jack_sample) {
 
     sprintf(file_name,"correlator_control_fin_%d.txt",jack_sample);
     file_out=fopen_control(file_name,"w");
+    fprintf(file_out,"#time\t correlator_Re\t  error_Re\n");
     for(t=0;t<C_jack->N_valid_points;t++) {
       fprintf(file_out,"%d\t%.15le\t%.15le\n", C_jack->points_numbers[t], C_jack->corr[t], C_jack->error[t]); fflush(file_out);
     }
