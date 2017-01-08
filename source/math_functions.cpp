@@ -335,13 +335,13 @@ if (abs(flag_lambda_regularization)==2 || abs(flag_lambda_regularization)==3  ||
   gsl_linalg_SV_decomp(Uk,Vk,Wk,workT);
   
   //Different regularization type
-  double sv0 = gsl_vector_get(Wk,0);
+//  double sv0 = gsl_vector_get(Wk,0);
   for(j=1;j<pC->N_valid_points;j++)
   {
     if(abs(flag_lambda_regularization)==2)
     {
 	par_double = gsl_vector_get(Wk,j);
-	if(par_double < sv0*lambda)
+	if(par_double < lambda)
     	    par_double = 0;
 	gsl_vector_set(Wk,j,par_double);
     }
