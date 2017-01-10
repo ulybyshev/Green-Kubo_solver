@@ -39,7 +39,8 @@ double cov_reg_lambda_definition(correlator* pC, calc_structures* pA, int* flag_
     fprintf(general_log,"Lambda definition for covariance matrix regularization is started\n"); fflush(general_log);
 
 //full scan of the lambda interval
-    lambda =1.0-accuracy/gsl_matrix_get(pC->S,0,0);
+//    lambda =1.0-accuracy/gsl_matrix_get(pC->S,0,0);
+    lambda =1.0-accuracy;
     double lambda_limit=1.0-2.0*pow(10.0, (double)limit_power);
     double error;
     int count_lambda=0;
@@ -106,7 +107,8 @@ double svd_reg_lambda_definition(correlator* pC, calc_structures* pA, int* flag_
     fprintf(general_log,"Lambda definition for SVD regularization is started\n"); fflush(general_log);
 
 //full scan of the lambda interval
-    lambda =accuracy/gsl_matrix_get(pC->S,0,0);
+//    lambda =accuracy/gsl_matrix_get(pC->S,0,0);
+    lambda =accuracy;
     double lambda_limit=2.0*pow(10.0, (double)limit_power);
     double error;
     int count_lambda=0;
@@ -272,7 +274,7 @@ void delta_rho_calculation_and_output(correlator * pC, calc_structures* pA, FILE
 		else
 		    f_d=delta(omega, Q, pC);
 		    
-    		fprintf(file_out,"%.15le\t%.15le\n", omega*2.0*pC->length, f_d);
+    		fprintf(file_out,"%.5le\t%.5le\n", omega*2.0*pC->length, f_d);
     		fflush(file_out);
 	    }
 	    fclose(file_out);
@@ -377,7 +379,8 @@ double cov_reg_lambda_definition_jack(correlator* pC, calc_structures* pA, int* 
     fprintf(general_log,"Lambda definition for covariance matrix regularization is started\n"); fflush(general_log);
 
 //full scan of the lambda interval
-    lambda =1.0-accuracy/gsl_matrix_get(pC[0].S,0,0);
+//    lambda =1.0-accuracy/gsl_matrix_get(pC[0].S,0,0);
+    lambda =1.0-accuracy;
     double lambda_limit=1.0-2.0*pow(10.0, (double)limit_power);
     double error;
     int count_lambda=0;
@@ -444,7 +447,8 @@ double svd_reg_lambda_definition_jack(correlator* pC, calc_structures* pA, int* 
     fprintf(general_log,"Lambda definition for SVD regularization is started\n"); fflush(general_log);
 
 //full scan of the lambda interval
-    lambda =accuracy/gsl_matrix_get(pC[0].S,0,0);
+//    lambda =accuracy/gsl_matrix_get(pC[0].S,0,0);
+    lambda =accuracy;
     double lambda_limit=2.0*pow(10.0, (double)limit_power);
     double error;
     int count_lambda=0;
@@ -609,7 +613,7 @@ void delta_rho_calculation_and_output_jack(correlator * pC, calc_structures* pA,
 		else
 		    f_d=delta(omega, Q, pC);
 		    
-		fprintf(file_out,"%.15le\t%.15le\n", omega*2.0*pC[0].length, f_d);
+		fprintf(file_out,"%.5le\t%.5le\n", omega*2.0*pC[0].length, f_d);
 		fflush(file_out);
 	      }
 	      fclose(file_out);

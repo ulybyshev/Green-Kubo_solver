@@ -535,6 +535,8 @@ bool input_data_analysis(initial_data_description* D)
     if(result)
     {
 	double c_r=D->largest_corr_length_calc();
+	if (c_r<1.0)
+	    c_r=1.0;
 	double n_c=c_r*(double)N_CONF_IN_BIN;
 	num_jack_samples=(int) ( (double)n_conf/n_c ); 
 	if (num_jack_samples<N_BINS_MINIMUM)
