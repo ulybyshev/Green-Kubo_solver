@@ -12,9 +12,9 @@ ________________________________________________________________________________
 COMMAND LINE OPTIONS
 
 
-without -a option: enters the regime with  error estimation through the data blocking, needs the full set of data (correlators for each monte-carlo (MC) configuration)
+without -a option: enters the regime with  error estimation through data blocking, needs the full set of data (correlators for each monte-carlo (MC) configuration)
     in this regime:
-    -b Nb  (Nb=number of data blocks) - if doesnt't exist then the number of data blocks is set up automatically 
+    -b Nb  (Nb=number of data blocks) - if not provided by the user then the number of data blocks is set up automatically 
     -c filename.txt  - file with full set of raw data: full-time Euclidean correlator for each MC configuration
 	format:
 	0    correlator_real_part   correlator_imaginary_part
@@ -24,7 +24,7 @@ without -a option: enters the regime with  error estimation through the data blo
 	(empty line)
 	......(data for the next configuration)
 
-with -a option: enters the regime without data blocking, so works with average correlator and covariance matrix:
+with -a option: enters the regime without data blocking, which works with the average correlator and covariance matrix:
     -c  filename.txt   - file with correlator  (it is assuned that the correlator is symmetrical with respect to the half of Euclidean time)
 	format:
 	1    correlator    correlator_error 
@@ -76,7 +76,7 @@ FILE WITH PARAMETERS (formatting)
     floating point number: starting value of the center of resolution function
   
   "center_stop"
-    floating point number: maximal value of the center of resolutio function
+    floating point number: maximal value of the center of resolution function
   
   "center_delta"
     floating point number: the step size for the center of resolution functions 
@@ -87,17 +87,17 @@ FILE WITH PARAMETERS (formatting)
 	integer_number:  
 	==0 without regularization (thus no floating point parameter)
 	==+-1 regularization by addition of covariance matrix:  (1-\lambda) S_{ij} 
-	    +1 parameter=lambda
-	    -1 parameter=average relative error  (and  lambda is choosen automatically)
+	    +1 floating_point_parameter=lambda
+	    -1 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
 	==+-2 regularization by neglecting all eigenvalues of W kernel less than \lambda  (Truncated SVD decomposition)
-	    +1 parameter=lambda
-	    -1 parameter=average relative error  (and  lambda is choosen automatically)
+	    +1 floating_point_parameter=lambda
+	    -1 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
 	==3 regularization by Tikhonov filtering in SVD decomposition  (minimize |K x-y| +lambda |x| (suppress fluctuations in spectral funtions)
-	    +1 parameter=lambda
-	    -1 parameter=average relative error  (and  lambda is choosen automatically)
+	    +1 floating_point_parameter=lambda
+	    -1 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
 	==4 alternative regularization through Tikhonov filtering in SVD  decomposition   (minimize  |K x-y| +lambda |Kx| (suppress fluctuations in correlator obtained from calculated spectral function)
-	    +1 parameter=lambda
-	    -1 parameter=average relative error  (and  lambda is choosen automatically)
+	    +1 floating_point_parameter=lambda
+	    -1 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
 
   "flag_exclude_corr" additional regularization by neglecting some points in correlator or by averaging over some intervals in correlator
     format:  
@@ -105,7 +105,7 @@ FILE WITH PARAMETERS (formatting)
     ==1 additioal regularization is introduced
 	format:
 	    1   N_{valid_timeslices}    i1   i2  .....  i_{N_{valid}}  
-	    (numbers should be sorted ascending, contact term in correlator is under number 0, so valid timeslices start from 1 and proceed till Nt)
+	    (numbers should be sorted in ascending order, contact term in correlator is under number 0, so valid timeslices start from 1 and proceed till Nt)
 
 
 example of the file with parameters
@@ -163,7 +163,7 @@ all dimensional quantities are in the units of temperature
 	Format:
 	#binsize   bin_error/initial_error
 	
-	bin_error is statistical error calculated after data binning, initial error is ordinary statistical error. This ration in the limit of large binsize is equal to
+	bin_error is statistical error calculated after data binning, initial error is ordinary statistical error. This ratio, in the limit of large binsize, is equal to
 	autocorrelation length.
 	 
 5)	delta_function_c=_VALUE_T.txt
@@ -180,7 +180,7 @@ all dimensional quantities are in the units of temperature
 	
 7)      rho_basic.txt
 	the same as rho_final.txt but includes more technical information about resolution functions
-	In case of data blocking thos file appears for each block of data separately for the final value of regularization parameter lambda
+	In case of data blocking this file appears for each block of data separately for the final value of regularization parameter lambda
 	Format:
 	#center_of_resolution_function  resolution_width(as it was in the  calculation of D functional) \\
 	position_of_the_maximum_of_resolution_function  width=(start-stop)/2  spectral_function  error  start  stop
