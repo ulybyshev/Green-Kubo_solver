@@ -137,16 +137,19 @@ bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correl
 	gsl_matrix_set(pC->S_full, i-1, t-1, par_double);
     }
 
-  file_out=fopen_control("cov_matrix_control_pre.txt","w");
-  for(i=0;i<pC->N_full_points;i++){
-  for(t=0;t<pC->N_full_points;t++)
-  {
-    fprintf(file_out,"%.15le\t", gsl_matrix_get(pC->S_full, i,t));fflush(file_out);
-  }
-  fprintf(file_out,"\n");
-  }
-  fclose(file_out);
-  
+
+    if(flag_covariance_matrix_input)
+    {
+	file_out=fopen_control("cov_matrix_control_pre.txt","w");
+	for(i=0;i<pC->N_full_points;i++){
+	for(t=0;t<pC->N_full_points;t++)
+	{
+	    fprintf(file_out,"%.15le\t", gsl_matrix_get(pC->S_full, i,t));fflush(file_out);
+	}
+	fprintf(file_out,"\n");
+	}
+	fclose(file_out);
+    }
   
   //conversion to real arrays taken into account only certain timeslices or intervals
 ///////////////////////////////////////////
@@ -231,16 +234,19 @@ else//just neglecting points (the case when we save full correlator is also here
     par_double=gsl_matrix_get(pC->S_full,pC->points_numbers[count1]-1, pC->points_numbers[count2]-1);
     gsl_matrix_set(pC->S, count1, count2, par_double);
   }
-
-  file_out=fopen_control("cov_matrix_control.txt","w");
-  for(i=0;i<pC->N_valid_points;i++){
-  for(t=0;t<pC->N_valid_points;t++)
-  {
-    fprintf(file_out,"%.15le\t", gsl_matrix_get(pC->S, i,t));fflush(file_out);
+  
+  if(flag_covariance_matrix_input)
+  {	
+	file_out=fopen_control("cov_matrix_control.txt","w");
+	for(i=0;i<pC->N_valid_points;i++){
+	for(t=0;t<pC->N_valid_points;t++)
+	{
+	    fprintf(file_out,"%.15le\t", gsl_matrix_get(pC->S, i,t));fflush(file_out);
+	}
+	fprintf(file_out,"\n");
+	}
+	fclose(file_out);
   }
-  fprintf(file_out,"\n");
-  }
-  fclose(file_out);
 }
 //end of conversion
 ///////////////////////////////////////////
