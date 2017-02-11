@@ -103,14 +103,14 @@ bool print_parameters(FILE* file_out, correlator* pC)
 
 bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correlator* pC)
 {
-    int t,i, j,par_int;
+    int t,i, j;
     double par_double;
     FILE* file_out;
 
 
     for(t=1;t<=pC->N_full_points;t++)
     {
-	fscanf(file_in_current, "%d", &par_int);
+	fscanf(file_in_current, "%le", &par_double);
 	fscanf(file_in_current, "%le", &(pC->corr_full[t-1]));
 	fscanf(file_in_current, "%le", &(pC->error_full[t-1]));
     }
