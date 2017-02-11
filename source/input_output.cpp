@@ -46,7 +46,8 @@ bool print_parameters(FILE* file_out, correlator* pC)
 
     fprintf(file_out,"file with current correlator:\n %s\n", correlator_filename);
 
-    fprintf(file_out,"file with covariance matrix:\n %s\n", cov_matrix_filename);
+    if(flag_covariance_matrix_input)
+	fprintf(file_out,"file with covariance matrix:\n %s\n", cov_matrix_filename);
 
     fprintf(file_out,"path for output:\n %s\n", output_directory);
 
@@ -112,7 +113,10 @@ bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correl
     {
 	fscanf(file_in_current, "%le", &par_double);
 	fscanf(file_in_current, "%le", &(pC->corr_full[t-1]));
-	fscanf(file_in_current, "%le", &(pC->error_full[t-1]));
+	if(flag_error_corr_input)
+		fscanf(file_in_current, "%le", &(pC->error_full[t-1]));
+	else
+		pC->error_full[t-1]=0.0;
     }
 
     file_out=fopen_control("correlator_control_pre.txt","w");
@@ -126,7 +130,10 @@ bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correl
     for(i=1;i<=pC->N_full_points;i++)
     for(t=1;t<=pC->N_full_points;t++)
      {
-	fscanf(file_in_matrix, "%le", &par_double);
+	if(flag_covariance_matrix_input)
+	    fscanf(file_in_matrix, "%le", &par_double);
+	else
+	    par_double=0.0;
 	gsl_matrix_set(pC->S_full, i-1, t-1, par_double);
     }
 

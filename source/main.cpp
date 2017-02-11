@@ -97,9 +97,14 @@ int main(int argc, char ** argv)
       }
     }
     else {
-      FILE* file_in_matrix=fopen(cov_matrix_filename,"r");
-      input_correlator_matrix(file_in_current, file_in_matrix, &tempC);
-      fclose(file_in_matrix);
+        FILE* file_in_matrix=NULL;
+	if(flag_covariance_matrix_input)
+    	    file_in_matrix=fopen(cov_matrix_filename,"r");
+        
+        input_correlator_matrix(file_in_current, file_in_matrix, &tempC);
+	
+	if(flag_covariance_matrix_input)
+    	    fclose(file_in_matrix);
     }
     fclose(file_in_current);
 

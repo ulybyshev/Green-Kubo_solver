@@ -32,7 +32,17 @@ with -a option: enters the regime without data blocking, which works with the av
 	3 ....
 	4 ....
 	Nt ....
-    -m  filename.txt -file with covariance matrix
+	
+	The input of errors is optional: if -e option exists, the format is the following
+	1    correlator
+	2 ....
+	3 ....
+	4 ....
+	Nt ....
+	
+	But in this case the error estimation and the automated procedures for choosing regularization don't work
+	
+    -m  filename.txt -file with covariance matrix   -   the input of covariance matrix is optional, can work without it, but then the regularization with covariance matrix doesn't work
 	format:
 	C_{11} .......  C_{1 Nt}
         ..........................
@@ -90,14 +100,14 @@ FILE WITH PARAMETERS (formatting)
 	    +1 floating_point_parameter=lambda
 	    -1 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
 	==+-2 regularization by neglecting all eigenvalues of W kernel less than \lambda  (Truncated SVD decomposition)
-	    +1 floating_point_parameter=lambda
-	    -1 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
+	    +2 floating_point_parameter=lambda
+	    -2 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
 	==3 regularization by Tikhonov filtering in SVD decomposition  (minimize |K x-y| +lambda |x| (suppress fluctuations in spectral funtions)
-	    +1 floating_point_parameter=lambda
-	    -1 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
+	    +3 floating_point_parameter=lambda
+	    -3 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
 	==4 alternative regularization through Tikhonov filtering in SVD  decomposition   (minimize  |K x-y| +lambda |Kx| (suppress fluctuations in correlator obtained from calculated spectral function)
-	    +1 floating_point_parameter=lambda
-	    -1 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
+	    +4 floating_point_parameter=lambda
+	    -4 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
 
   "flag_exclude_corr" additional regularization by neglecting some points in correlator or by averaging over some intervals in correlator
     format:  

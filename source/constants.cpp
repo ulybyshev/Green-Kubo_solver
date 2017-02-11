@@ -87,3 +87,9 @@ int n_conf; //number of configurations
 double dn_conf;
 
 double *raw_data;
+
+
+//presence of covariance matrix in input data
+bool flag_covariance_matrix_input=true;
+//presence of the errors in correlator input (makes sence only in regime without data blocking)
+bool flag_error_corr_input=true;

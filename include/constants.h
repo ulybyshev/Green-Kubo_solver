@@ -98,4 +98,8 @@ extern int Number_lambda_points;//number of point in plots for lambda
 
 extern double *raw_data;
 
+extern bool flag_covariance_matrix_input;
+extern bool flag_error_corr_input;
+
+
 #endif

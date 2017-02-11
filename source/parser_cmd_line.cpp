@@ -71,14 +71,26 @@ bool parse_cmd_line(const int& argc, char ** argv)
     {
 	return false;
     }
+
+//existence of errors in correlator
+    if(option_exists (argv, argv+argc, "-e"))
+    {
+	flag_error_corr_input=false;
+    }
+    else
+    {
+	flag_error_corr_input=true;
+    }
     
+
     if(!flag_jackknife) {
       //covariance matrix file  name
       if(option_exists (argv, argv+argc, "-m")) {
 	sprintf(cov_matrix_filename,"%s",option_parameter(argv, argv + argc, "-m"));
+	flag_covariance_matrix_input=true;
       }
       else {
-	return false;
+	flag_covariance_matrix_input=false;
       }
     }
     
