@@ -141,8 +141,22 @@ lambda
 flag_exclude_corr
 1  10  1 2 5 10 15 20 25 30 35 40
 
-
 all dimensional parameteres are in the units of temperature
+
+
+Default values of parameters:
+regularization type:				-4
+relative error:   				0.05
+value of regularization constant lambda:	1.0e-06
+kernel type					1
+accuracy 					1.0e-12
+number of steps in numerical integration 	1000000
+delta_plot_step					0.5
+delta_plot_limit				Nt *2.0
+center_start 					0.0
+center_delta 					1.0
+center_stop=					Nt
+
 ____________________________________________________________________________________________________________________
 OUTPUT
 
