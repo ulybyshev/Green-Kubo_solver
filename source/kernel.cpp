@@ -25,6 +25,8 @@ double kernel_function(double omega, int beta, int euclidean_time)
 	    return kernel_DOS_even(omega, beta, euclidean_time);
 	case 2:
 	    return kernel_lattice_DOS_even(omega, beta, euclidean_time);
+	case 3:
+	    return kernel_meson(omega, beta, euclidean_time);
 	default:
 	    return kernel_conductivity(omega, beta, euclidean_time);
     }
@@ -37,6 +39,16 @@ double kernel_conductivity(double omega, int  beta,  int euclidean_time)
 {
     return (omega/PI)*(exp(omega*(-(double)euclidean_time))+exp(omega*((double)euclidean_time-(double)beta)))/(1.0-exp(-omega*(double)beta));
 }
+
+
+//to extract spectral function for meson: the same as for conductivity but with tanh(omega*beta/2) regularization at zero omega
+//it means that the kernel is cosh(owega*(tau-beta/2))/cosh(omega*beta/2),
+// but the spectral function should be multiplied in the end by sinh(omega*beta/2)/cosh(omega*beta/2) = sinh (omega/2)/cosh (omega/2) if omega is in units of temperature
+double kernel_meson(double omega, int  beta,  int euclidean_time)
+{
+    return   (exp(omega*(-(double)euclidean_time))+exp(omega*((double)euclidean_time-(double)beta)))/(1.0+exp(-omega*(double)beta));
+}
+
 
 //to extract Density of States from fermionic propagator
 //written using assumption that the energy unit for density of states is he inverse step in Euclidean time

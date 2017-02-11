@@ -19,3 +19,7 @@ double kernel_DOS_odd(double omega, int beta, int euclidean_time);
 
 //lattice version of kernel_DOS (takes into account time discretization)
 double kernel_lattice_DOS_odd(double omega, int  beta, int euclidean_time);
+
+
+//for mesonic correlators
+double kernel_meson(double omega, int  beta, int euclidean_time);

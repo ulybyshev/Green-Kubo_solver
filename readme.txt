@@ -68,6 +68,7 @@ FILE WITH PARAMETERS (formatting)
     ==0 for conductitvity kernel
     ==1 for Density of States kernel	
     ==2 for Density of States kernel taking into account discrete time
+    ==3 the same as for conductivity but with cosh(omega*beta/2) in denominator
  
   
   "accuracy"
@@ -151,7 +152,7 @@ value of regularization constant lambda:	1.0e-06
 kernel type					1
 accuracy 					1.0e-12
 number of steps in numerical integration 	1000000
-delta_plot_step					0.5
+delta_plot_step					0.25
 delta_plot_limit				Nt *2.0
 center_start 					0.0
 center_delta 					1.0
