@@ -42,7 +42,8 @@ double kernel_conductivity(double omega, int  beta,  int euclidean_time)
 
 
 //to extract spectral function for meson: the same as for conductivity but with tanh(omega*beta/2) regularization at zero omega
-//it means that the kernel is cosh(owega*(tau-beta/2))/cosh(omega*beta/2),
+//it means that the kernel is cosh(owega*(tau-beta/2))/cosh(omega*beta/2) - and it coincides with kernel_DOS_even
+//nevertheless, separate function should be kept for the possibilities of further modifications
 // but the spectral function should be multiplied in the end by sinh(omega*beta/2)/cosh(omega*beta/2) = sinh (omega/2)/cosh (omega/2) if omega is in units of temperature
 double kernel_meson(double omega, int  beta,  int euclidean_time)
 {
