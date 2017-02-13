@@ -197,6 +197,8 @@ if(flag_model==2)//intervals
     result=0.0;
   }
 
+if(flag_covariance_matrix_input)
+{
   file_out=fopen_control("cov_matrix_control.txt","w");
   for(i=0;i<pC->N_valid_points;i++){
   for(t=0;t<pC->N_valid_points;t++)
@@ -206,6 +208,7 @@ if(flag_model==2)//intervals
   fprintf(file_out,"\n");
   }
   fclose(file_out);
+}
 }
 else//just neglecting points (the case when we save full correlator is also here)
 { 

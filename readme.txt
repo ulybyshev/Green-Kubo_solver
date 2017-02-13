@@ -113,11 +113,11 @@ FILE WITH PARAMETERS (formatting)
   "flag_exclude_corr" additional regularization by neglecting some points in correlator or by averaging over some intervals in correlator
     format:  
     ==0 no additional regularization
-    ==1 additioal regularization is introduced
+    ==1 additional regularization is introduced: all points except the listed ones are neglected
 	format:
 	    1   N_{valid_timeslices}    i1   i2  .....  i_{N_{valid}}  
 	    (numbers should be sorted in ascending order, contact term in correlator is under number 0, so valid timeslices start from 1 and proceed till Nt)
-
+    ==2 the same as in the previous case, but correlator is averaged over intervals between listed points
 
 example of the file with parameters
 
