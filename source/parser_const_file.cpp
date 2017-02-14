@@ -40,7 +40,7 @@ void parse_option(FILE* file, const char* pattern, const char* option, void* ptr
 
 void parse_lambda_option(FILE* file_const, const char* option)
 {
-    char *description=(char*)calloc(1000,sizeof(char));
+    char *description;
   
     while(!feof(file_const))
     {
@@ -72,10 +72,8 @@ void parse_lambda_option(FILE* file_const, const char* option)
 void parse_exclusion_option(FILE* file_const, const char* option, correlator* pC)
 {
     int i;
-    char *description=(char*)calloc(1000,sizeof(char));
+    char *description;
     bool is_option=false;
-
-
 
     while(!feof(file_const))
     {
@@ -123,36 +121,35 @@ void parse_exclusion_option(FILE* file_const, const char* option, correlator* pC
 
 void parse_force_zero_option(FILE* file_const, const char* option )
 {
-    int i;
-    char *description=(char*)calloc(1000,sizeof(char));
-    char in;
-    int count=0;
-
-    while(1) {
-      in=getc(file_const);
-      if(in!='\n') {
-	description[count]=in;
-	count++;
-      }
-      else
-	break;
-    }
-    if(strcmp(description,"flag_force_zero")==0) {   
-      fscanf(file_const, "%d",&flag_exclude_delta);
-      if(!flag_exclude_delta)
-	{SKIP_REMAINING_CHARS(file_const)}
-      else
+    char *description;
+    bool is_option=false;
+    
+    while(!feof(file_const))
+    {
+        description=(char*)calloc(1000,sizeof(char));
+	get_description(file_const, description); 
+	if(strcmp(description,option)==0)
 	{
-	  fscanf(file_const,"%d",&count_start_exclude);
-	  SKIP_REMAINING_CHARS(file_const)
+	    is_option=true;
+    	    fscanf(file_const, "%d",&flag_exclude_delta);
+    	    if(!flag_exclude_delta)
+		{SKIP_REMAINING_CHARS(file_const)}
+    	    else
+	    {
+		fscanf(file_const,"%d",&count_start_exclude);
+		SKIP_REMAINING_CHARS(file_const)
 	    }
+	    free(description);
+	    break;
+	}
+	free(description);
     }
-    else {
-      ungetc('\n',file_const);
-      for(i=count-1;i>=0;i--)
-	ungetc(description[i],file_const);
+    if(!is_option)
+    {
+	flag_exclude_delta=0;
     }
-    free(description);
+    fseek(file_const, 0, SEEK_SET);
+
 }
 
 bool parse_const_file(FILE* file_const, correlator* pC)
@@ -191,7 +188,6 @@ void set_default_values()
   center_start=DEFAULT_CENTER_START;
   center_stop=(double)Nt_2;
   center_delta=DEFAULT_CENTER_DELTA;
-  flag_exclude_delta=DEFAULT_FLAG_EXCLUDE_DELTA;
     
 }
 
