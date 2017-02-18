@@ -81,6 +81,17 @@ bool parse_cmd_line(const int& argc, char ** argv)
     {
 	flag_error_corr_input=true;
     }
+
+
+//existence imaginary part data in raw data input
+    if(option_exists (argv, argv+argc, "-i"))
+    {
+	flag_imag_part_input=false;
+    }
+    else
+    {
+	flag_imag_part_input=true;
+    }
     
 
     if(!flag_jackknife) {

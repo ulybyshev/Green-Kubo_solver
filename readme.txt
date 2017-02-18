@@ -16,13 +16,16 @@ without -a option: enters the regime with  error estimation through data blockin
     in this regime:
     -b Nb  (Nb=number of data blocks) - if not provided by the user then the number of data blocks is set up automatically 
     -c filename.txt  - file with full set of raw data: full-time Euclidean correlator for each MC configuration
-	format:
+    	format:
 	0    correlator_real_part   correlator_imaginary_part
 	1 ....
 	2 ....
 	Nt_full-1 ......
 	(empty line)
 	......(data for the next configuration)
+	
+	-i option turns off imaginary part. In this case input is organized in two columns
+
 
 with -a option: enters the regime without data blocking, which works with the average correlator and covariance matrix:
     -c  filename.txt   - file with correlator  (it is assuned that the correlator is symmetrical with respect to the half of Euclidean time)

@@ -93,3 +93,6 @@ double *raw_data;
 bool flag_covariance_matrix_input=true;
 //presence of the errors in correlator input (makes sence only in regime without data blocking)
 bool flag_error_corr_input=true;
+
+//presence of imaginary part in raw data input
+bool flag_imag_part_input=true;

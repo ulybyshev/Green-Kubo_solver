@@ -272,16 +272,37 @@ void input_raw_data(FILE* file_in_current) {
   int Nt=2*Nt_2;
   while(1) {
     t_count=0;
-    while(t_count<Nt) {
-      if(fscanf(file_in_current,"%d%lf%lf",&t,&re_g,&im_g)==3) {
-	temp_g[t_count+conf_count*Nt]=re_g;
-	SKIP_REMAINING_CHARS(file_in_current);
-	t_count++;
-      }
-      else {
-	fprintf(stderr,"error for config %d, time %d: %d, %f %f\n",conf_count,t_count,t,re_g,im_g);
-	exit(1);
-      }
+    while(t_count<Nt) 
+    {
+	if(flag_imag_part_input==true)
+	{
+         if(fscanf(file_in_current,"%d%lf%lf",&t,&re_g,&im_g)==3) 
+	    {
+		temp_g[t_count+conf_count*Nt]=re_g;
+		SKIP_REMAINING_CHARS(file_in_current);
+		t_count++;
+    	    }
+    	    else 
+    	    {
+		fprintf(stderr,"error for config %d, time %d: %d, %f %f\n",conf_count,t_count,t,re_g,im_g);
+		exit(1);
+    	    }
+	}
+	else
+	{
+         if(fscanf(file_in_current,"%d%lf",&t,&re_g)==2) 
+	    {
+		im_g=0.0;
+		temp_g[t_count+conf_count*Nt]=re_g;
+		SKIP_REMAINING_CHARS(file_in_current);
+		t_count++;
+    	    }
+    	    else 
+    	    {
+		fprintf(stderr,"error for config %d, time %d: %d, %f %f\n",conf_count,t_count,t,re_g,im_g);
+		exit(1);
+    	    }
+	}
     }
     conf_count++;
     
