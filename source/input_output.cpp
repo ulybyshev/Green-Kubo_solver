@@ -256,7 +256,7 @@ else//just neglecting points (the case when we save full correlator is also here
     return true;
 }
 
-void input_raw_data(FILE* file_in_current) {
+int input_raw_data(FILE* file_in_current) {
 
   int t_count,conf_count,t;
   double re_g,im_g;
@@ -320,6 +320,7 @@ void input_raw_data(FILE* file_in_current) {
   dn_conf=(double)n_conf;
   //allocate memory for raw data
   raw_data=(double *)calloc(Nt_2*n_conf,sizeof(double));
+
   //fold data
   for(conf_count=0;conf_count<n_conf;conf_count++) {
     for(t_count=1;t_count<Nt_2;t_count++) {
@@ -331,7 +332,7 @@ void input_raw_data(FILE* file_in_current) {
   }
   
   free(temp_g);
-  
+  return n_conf;
 }
 
 void get_jack_sample(correlator *C_jack, int jack_sample) {

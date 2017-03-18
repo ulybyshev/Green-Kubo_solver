@@ -27,6 +27,8 @@ double kernel_function(double omega, int beta, int euclidean_time)
 	    return kernel_lattice_DOS_even(omega, beta, euclidean_time);
 	case 3:
 	    return kernel_meson(omega, beta, euclidean_time);
+	case 4:
+	    return lattice_kernel_conductivity(omega, beta, euclidean_time);
 	default:
 	    return kernel_conductivity(omega, beta, euclidean_time);
     }
@@ -38,6 +40,14 @@ double kernel_function(double omega, int beta, int euclidean_time)
 double kernel_conductivity(double omega, int  beta,  int euclidean_time)
 {
     return (omega/PI)*(exp(omega*(-(double)euclidean_time))+exp(omega*((double)euclidean_time-(double)beta)))/(1.0-exp(-omega*(double)beta));
+}
+
+//kernel for conductivity: the version for time-discretized  fermionic operator
+double lattice_kernel_conductivity(double omega, int  beta,  int euclidean_time)
+{
+    double lat_exp_beta=lattice_exp(omega, beta);
+    double lat_exp_beta1=lattice_exp(-omega, beta);
+    return (omega/PI)* (lattice_exp(-omega, euclidean_time)* (1.0-lat_exp_beta) - lattice_exp(omega, euclidean_time)* (1.0-lat_exp_beta1)) / ( ( 1.0 - lat_exp_beta1 ) *(1.0 - lat_exp_beta ) );
 }
 
 

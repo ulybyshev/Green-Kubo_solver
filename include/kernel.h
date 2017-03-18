@@ -9,6 +9,8 @@ double kernel_function(double omega, int beta, int euclidean_time);
 //set of kernels
 double kernel_conductivity(double omega, int beta, int euclidean_time);
 
+double lattice_kernel_conductivity(double omega, int  beta,  int euclidean_time);
+
 double kernel_DOS_even(double omega, int beta, int euclidean_time);
 
 //lattice version of kernel_DOS (takes into account time discretization)

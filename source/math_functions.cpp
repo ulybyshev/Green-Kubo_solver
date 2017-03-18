@@ -182,7 +182,7 @@ void R_integration(calc_structures* pA,correlator* pC)
 	{
 	    buffer.t=t;
 	    F.params = &buffer;
-	    if(kernel_switcher!=2)
+	    if(kernel_switcher!=2 && kernel_switcher!=4)
 	    	    gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
 	    else
 	    {
@@ -217,7 +217,7 @@ void omega_R_integration(calc_structures* pA,correlator* pC)
 	{
 	    buffer.t=t;
 	    F.params = &buffer;
-	    if(kernel_switcher!=2)
+	    if(kernel_switcher!=2 && kernel_switcher!=4)
 	    	gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w, &int_result, &int_error); 
 	    else
 		gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w, &int_result, &int_error); 
@@ -250,7 +250,7 @@ void W_integration(gsl_matrix * W, correlator* pC, double center)
       buffer.i=i;
       buffer.j=j;
       F.params = &buffer;
-      if(kernel_switcher!=2)
+      if(kernel_switcher!=2 && kernel_switcher!=4)
             gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
 	else
 	    gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w1, &int_result, &int_error); 
@@ -581,7 +581,7 @@ double delta_width_calculation(gsl_vector* Q, double center, correlator* pC)
   buffer.pC=pC;
   F.params = &buffer;
   
-  if(kernel_switcher!=2)
+  if(kernel_switcher!=2 && kernel_switcher!=4)
     gsl_integration_qagiu (&F, 0.0, 0.0, accuracy, N_int_steps, w1, &int_result, &int_error);
   else
     gsl_integration_qag (&F, 0.0, 1.0, 0.0, accuracy, N_int_steps,GSL_INTEG_GAUSS15, w1, &int_result, &int_error);

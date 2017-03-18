@@ -4,6 +4,7 @@
 #include "input_output.h"
 #include "math_functions.h"
 #include "spectral_func.h"
+#include "kernel.h"
 
 void print_test(correlator *pC) {
   int i, j;
@@ -57,6 +58,19 @@ int main(int argc, char ** argv)
     general_log=fopen_control("general_log.txt","w");
     print_parameters(general_log, &tempC);        
 
+
+
+///for test
+{
+FILE* kernel_test=fopen_control("kernel_test.txt","w");
+double k_t;
+for(k_t=0;k_t<1.001;k_t+=0.001)
+{
+    fprintf(kernel_test,"%.15le\t%.15le\t%.15le\n", k_t, kernel_conductivity(k_t,160,10), lattice_kernel_conductivity(k_t,160,10)); fflush(kernel_test);
+}
+fclose(kernel_test);
+}
+
     //files for input-output operations
     FILE* file_in_current;
   
@@ -64,7 +78,8 @@ int main(int argc, char ** argv)
     
     if(flag_jackknife) 
     {
-      input_raw_data(file_in_current); 
+      int number_read_confs=input_raw_data(file_in_current); 
+      fprintf(general_log,"Number of configurations in raw data=%d\n", number_read_confs);fflush(general_log);
       if(n_conf<4)
 	{
 	    fprintf(general_log,"ERROR: too small amount of configurations (<4). Exit.\n"); fflush(general_log);

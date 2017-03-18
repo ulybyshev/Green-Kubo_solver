@@ -72,6 +72,7 @@ FILE WITH PARAMETERS (formatting)
     ==1 for Density of States kernel	
     ==2 for Density of States kernel taking into account discrete time
     ==3 the same as for conductivity but with cosh(omega*beta/2) in denominator
+    ==4 lattice version of conductitvity kernel
  
   
   "accuracy"
