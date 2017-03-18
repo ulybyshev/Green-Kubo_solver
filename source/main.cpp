@@ -59,18 +59,6 @@ int main(int argc, char ** argv)
     print_parameters(general_log, &tempC);        
 
 
-
-///for test
-{
-FILE* kernel_test=fopen_control("kernel_test.txt","w");
-double k_t;
-for(k_t=0;k_t<1.001;k_t+=0.001)
-{
-    fprintf(kernel_test,"%.15le\t%.15le\t%.15le\n", k_t, kernel_conductivity(k_t,160,10), lattice_kernel_conductivity(k_t,160,10)); fflush(kernel_test);
-}
-fclose(kernel_test);
-}
-
     //files for input-output operations
     FILE* file_in_current;
   
