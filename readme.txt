@@ -26,9 +26,14 @@ without -a option: enters the regime with  error estimation through data blockin
 	
 	-i option turns off imaginary part. In this case input is organized in two columns
 
+	depending on the kernel, performs symmetrization/antisymmetrization of the input data:
+	if kernel_switcher=5(see below) - performs antisymmetrization
+	else - symmetrization
+	
+
 
 with -a option: enters the regime without data blocking, which works with the average correlator and covariance matrix:
-    -c  filename.txt   - file with correlator  (it is assuned that the correlator is symmetrical with respect to the half of Euclidean time)
+    -c  filename.txt   - file with correlator  (it is assuned that the correlator is symmetrical/antisymmetrical with respect to the half of Euclidean time)
 	format:
 	1    correlator    correlator_error 
 	2 ....
@@ -73,6 +78,7 @@ FILE WITH PARAMETERS (formatting)
     ==2 for Density of States kernel taking into account discrete time
     ==3 the same as for conductivity but with cosh(omega*beta/2) in denominator
     ==4 lattice version of conductitvity kernel
+    ==5 odd kernel for Density of States
  
   
   "accuracy"

@@ -324,7 +324,15 @@ int input_raw_data(FILE* file_in_current) {
   //fold data
   for(conf_count=0;conf_count<n_conf;conf_count++) {
     for(t_count=1;t_count<Nt_2;t_count++) {
-      raw_data[t_count-1+conf_count*Nt_2]=(temp_g[t_count+conf_count*Nt]+temp_g[(Nt-t_count)+conf_count*Nt])/2;
+    
+	if(kernel_switcher!=5)
+	{//symmetrical case
+    	    raw_data[t_count-1+conf_count*Nt_2]=(temp_g[t_count+conf_count*Nt]+temp_g[(Nt-t_count)+conf_count*Nt])/2;
+    	}
+    	else
+    	{//antisymmetrical case
+    	    raw_data[t_count-1+conf_count*Nt_2]=(temp_g[t_count+conf_count*Nt]-temp_g[(Nt-t_count)+conf_count*Nt])/2;
+    	}
       
     }
     raw_data[Nt_2-1+conf_count*Nt_2]=temp_g[Nt_2+conf_count*Nt];

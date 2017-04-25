@@ -29,6 +29,8 @@ double kernel_function(double omega, int beta, int euclidean_time)
 	    return kernel_meson(omega, beta, euclidean_time);
 	case 4:
 	    return lattice_kernel_conductivity(omega, beta, euclidean_time);
+	case 5:
+	    return kernel_DOS_odd(omega, beta, euclidean_time);
 	default:
 	    return kernel_conductivity(omega, beta, euclidean_time);
     }
