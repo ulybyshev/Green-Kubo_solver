@@ -335,7 +335,11 @@ int input_raw_data(FILE* file_in_current) {
     	}
       
     }
-    raw_data[Nt_2-1+conf_count*Nt_2]=temp_g[Nt_2+conf_count*Nt];
+    if(kernel_switcher!=5)
+	raw_data[Nt_2-1+conf_count*Nt_2]=temp_g[Nt_2+conf_count*Nt];
+    else
+	raw_data[Nt_2-1+conf_count*Nt_2]=0.0;
+    
     
   }
   
