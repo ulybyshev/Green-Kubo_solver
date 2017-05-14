@@ -98,9 +98,23 @@ void parse_exclusion_option(FILE* file_const, const char* option, correlator* pC
 		int n_valid;
 		fscanf(file_const, "%d", &n_valid);
 		pC->format(Nt_2, n_valid);
-		for(i=0;i<pC->N_valid_points; i++)
-		fscanf(file_const, "%d", &(pC->points_numbers[i]));
-		SKIP_REMAINING_CHARS(file_const)
+
+		if(flag_model==1)
+		{
+			for(i=0;i<n_valid; i++)
+			{
+			    fscanf(file_const, "%d", &(pC->points_numbers[i]));
+			    pC->points_stop_numbers[i]=pC->points_numbers[i]; 
+			}
+		    SKIP_REMAINING_CHARS(file_const)
+		}
+		else
+		{
+			for(i=0;i<n_valid; i++)
+			{
+			    fscanf(file_const, "%d%d", &(pC->points_numbers[i]), &(pC->points_stop_numbers[i]));
+			}
+		}
 	    }
         
     	    free(description);
@@ -112,7 +126,10 @@ void parse_exclusion_option(FILE* file_const, const char* option, correlator* pC
     {
 	pC->format(Nt_2, Nt_2);
 	for(i=0;i<pC->N_valid_points; i++)
+	{
 	    pC->points_numbers[i]=i+1;
+	    pC->points_stop_numbers[i]=pC->points_numbers[i]; 
+	}
     }
 
     fseek(file_const, 0, SEEK_SET);

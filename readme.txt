@@ -128,6 +128,9 @@ FILE WITH PARAMETERS (formatting)
 	    1   N_{valid_timeslices}    i1   i2  .....  i_{N_{valid}}  
 	    (numbers should be sorted in ascending order, contact term in correlator is under number 0, so valid timeslices start from 1 and proceed till Nt)
     ==2 the same as in the previous case, but correlator is averaged over intervals between listed points
+	    2   N_{intervals}    start1   stop1  .....  start{N_{intervals}}  stop{N_{intervals}}  
+		    averaging is performed in each  intevals over points t=startN...stopN  (including the 1st and the last point) 
+    
 
 example of the file with parameters
 

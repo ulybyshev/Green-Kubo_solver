@@ -70,7 +70,7 @@ bool print_parameters(FILE* file_out, correlator* pC)
 	fprintf(file_out,"ordered relative error=%.15le\n",relative_error);
 
     fprintf(file_out,"Take into account all (0)  or not all (1) timeslices or average over intervals (2) = %d\n",flag_model);
-    if(flag_model)
+    if(flag_model==1)
     {
 	int i;
 	fprintf(file_out,"Number of timeslices taken into account = %d\n",pC->N_valid_points);
@@ -79,6 +79,17 @@ bool print_parameters(FILE* file_out, correlator* pC)
 	    fprintf(file_out,"%d\n",pC->points_numbers[i]);
 	}
     }
+
+    if(flag_model==2)
+    {
+	int i;
+	fprintf(file_out,"Number of intervals taken into account = %d\n",pC->N_valid_points);
+	for(i=0;i<pC->N_valid_points;i++)
+	{
+	    fprintf(file_out,"%d\t%d\n",pC->interval_numbers[i]->times[0], pC->interval_numbers[i]->times[pC->interval_numbers[i]->size-1]);
+	}
+    }
+
 
     fprintf(file_out,"Force or not (1 or 0) resolution functions to be zero at zero frequency: %d\n",flag_exclude_delta);
     fprintf(file_out,"Number of resolution function  to start enforcement of condition f(0)=0 : %d\n",count_start_exclude);
@@ -177,7 +188,7 @@ if(flag_model==2)//intervals
   fprintf(file_out,"#interval_number\t average_correlator_Re\t  error_Re\n");
   for(t=0;t<pC->N_valid_points;t++)
   {
-    fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n" ,pC->points_numbers[t]-pC->interval_numbers[t]->size +1, pC->points_numbers[t], pC->corr[t], pC->error[t]);fflush(file_out);
+    fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n" ,pC->interval_numbers[t]->times[0],pC->interval_numbers[t]->times[pC->interval_numbers[t]->size-1], pC->corr[t], pC->error[t]);fflush(file_out);
   }
   fclose(file_out);
 
@@ -342,6 +353,42 @@ int input_raw_data(FILE* file_in_current) {
     
     
   }
+
+
+ //output of full average and error 
+{ 
+  int i,j;
+  double *avg=(double *)calloc(Nt_2,sizeof(double));
+  double *err=(double *)calloc(Nt_2,sizeof(double));
+  for(i=0;i<Nt_2;i++) {
+    avg[i]=0.0;
+    err[i]=0.0;
+  }
+  
+   for(i=1;i<=Nt_2;i++) {
+    for(j=0;j<=n_conf;j++) {
+      avg[i-1]+=raw_data[(i-1)+(j-1)*Nt_2];
+    }
+    avg[i-1]=avg[i-1]/((double)n_conf);
+  }
+  
+  for(i=1;i<=Nt_2;i++) {
+    for(j=0;j<=n_conf;j++) {
+      err[i-1]+=(raw_data[(i-1)+(j-1)*Nt_2]-avg[i-1])*(raw_data[(i-1)+(j-1)*Nt_2]-avg[i-1]);
+    }
+    err[i-1]=sqrt(err[i-1]/((double)n_conf*(n_conf-1.0)));
+  }
+  FILE* file_out=fopen_control("correlator_control_full.txt","w");
+  fprintf(file_out,"#time\t correlator_Re\t  error_Re\n");
+
+  for(i=0;i<=Nt_2-1;i++) {
+    fprintf(file_out,"%d\t%.15le\t%.15le\n", i+1, avg[i], err[i]);fflush(file_out);
+  }
+  fclose(file_out);
+  free(avg);
+  free(err);
+ }
+
   
   free(temp_g);
   return n_conf;
@@ -452,7 +499,7 @@ void get_jack_sample(correlator *C_jack, int jack_sample) {
     fprintf(file_out,"#interval_number\t average_correlator_Re\t  error_Re\n");
 
     for(t=0;t<C_jack->N_valid_points;t++) {
-      fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n" ,C_jack->points_numbers[t]-C_jack->interval_numbers[t]->size +1, C_jack->points_numbers[t], C_jack->corr[t], C_jack->error[t]);fflush(file_out);
+      fprintf(file_out,"%d\t%d\t%.15le\t%.15le\n",C_jack->interval_numbers[t]->times[0] ,C_jack->interval_numbers[t]->times[C_jack->interval_numbers[t]->size-1], C_jack->corr[t], C_jack->error[t]);fflush(file_out);
     }
     fclose(file_out);
     

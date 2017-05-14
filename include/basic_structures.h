@@ -38,6 +38,8 @@ public:
     
 
     int* points_numbers;
+    int* points_stop_numbers;
+
     interval **interval_numbers;    
     
     correlator(int N_full=1, int N_valid=1);

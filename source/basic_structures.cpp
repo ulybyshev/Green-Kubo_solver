@@ -34,6 +34,8 @@ correlator::correlator(int N_full, int N_valid)
     S=gsl_matrix_alloc(N_valid_points, N_valid_points);
     
     points_numbers=(int*)calloc(N_valid_points, sizeof(int));
+    points_stop_numbers=(int*)calloc(N_valid_points, sizeof(int));
+
 
     interval_numbers=new interval*[N_valid_points];
     int i;
@@ -53,6 +55,7 @@ void correlator::format(int N_full,int N_valid)
     gsl_matrix_free(S);
     
     free(points_numbers);
+    free(points_stop_numbers);
 
     int i;
     for(i=0;i<N_valid_points;i++)
@@ -73,6 +76,7 @@ void correlator::format(int N_full,int N_valid)
     S=gsl_matrix_alloc(N_valid_points, N_valid_points);
     
     points_numbers=(int*)calloc(N_valid_points, sizeof(int));
+    points_stop_numbers=(int*)calloc(N_valid_points, sizeof(int));
 
     interval_numbers=new interval*[N_valid_points];
     for(i=0;i<N_valid_points;i++)
@@ -93,6 +97,8 @@ correlator:: ~correlator()
     gsl_matrix_free(S);
     
     free(points_numbers);
+    free(points_stop_numbers);
+
     int i;
     for(i=0;i<N_valid_points;i++)
 	delete interval_numbers[i];
@@ -106,29 +112,30 @@ correlator:: ~correlator()
 void correlator::construct_intervals()//int *points, int num_points, interval *intervals) 
 {
 
-  int i,j,k,count_interval,interval_length;
+  int j,k,count_interval,interval_length;
 
-  count_interval=N_valid_points-1;
-  for(i=(N_valid_points-1);i>=1;i--) 
+  if(flag_model!=2)
   {
-	if((points_numbers[i]-1)==points_numbers[i-1]) 
-	{ //single "red" point
-    	    interval_numbers[count_interval]->format(1);
-    	    interval_numbers[count_interval]->times[0]=points_numbers[i];
-	}
-	else
-	{ //contains "black points"
-    	    interval_length=(points_numbers[i]-points_numbers[i-1]);
-    	    interval_numbers[count_interval]->format(interval_length);
-    	    for(j=points_numbers[i],k=(interval_length-1);j>points_numbers[i-1];j--,k--)
-    	    {
-		interval_numbers[count_interval]->times[k]=j;
-    	    }
-	}
-	count_interval--;
+     for(count_interval=0;count_interval<N_valid_points;count_interval++) 
+    {
+	interval_numbers[count_interval]->format(1);
+    	interval_numbers[count_interval]->times[0]=points_numbers[count_interval];
+    }
   }
-  interval_numbers[0]->format(1);
-  interval_numbers[0]->times[0]=points_numbers[0];
+  else
+  {
+     for(count_interval=0;count_interval<N_valid_points;count_interval++) 
+     {
+    	    interval_length=(points_stop_numbers[count_interval]-points_numbers[count_interval]+1);
+    	    interval_numbers[count_interval]->format(interval_length);
+    	    k=0;
+    	    for(j=points_numbers[count_interval];j<=points_stop_numbers[count_interval];j++)
+    	    {
+		interval_numbers[count_interval]->times[k]=j;k++;
+    	    }
+    }
+  }
+
 }
 
 

@@ -117,6 +117,7 @@ int main(int argc, char ** argv)
 	C[i].format(tempC.N_full_points,tempC.N_valid_points);
 	for(j=0;j<tempC.N_valid_points;j++) {
 	  C[i].points_numbers[j]=tempC.points_numbers[j];
+	  C[i].points_stop_numbers[j]=tempC.points_stop_numbers[j];
 	}
 	C[i].construct_intervals();
 	get_jack_sample(&C[i], i+1);
