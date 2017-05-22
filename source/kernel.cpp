@@ -69,7 +69,7 @@ double kernel_meson(double omega, int  beta,  int euclidean_time)
 //  (we assume the \rho (-omega) = \rho (\omega)) so the full integral  \int_{-infty}^\infty \frac {\rho(\omega) d\omega } = 1
 double kernel_DOS_even(double omega, int beta, int  euclidean_time)
 {
-    return (exp(omega*(-(double)euclidean_time))+exp(omega*((double)euclidean_time-(double)beta)))/(1.0+exp(-omega*(double)beta));
+	return (exp(omega*(-(double)euclidean_time))+exp(omega*((double)euclidean_time-(double)beta)))/(1.0+exp(-omega*(double)beta));
 }
 
 //for non-symmetrical case
