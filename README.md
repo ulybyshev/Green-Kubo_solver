@@ -206,10 +206,11 @@ Below we present the list of files with brief description of their formats.
 
    Final values of correlator for N-th bin (after averaging over intervals or neglecting some data points, if this type of regularization was ordered in parameters file).
  
-   Format of "correlator_control_fin_N.txt";
+   Format of "correlator_control_fin_N.txt":
 ```
 	time  correlator_Re   error_Re
 ```
+
 
    Format of "correlator_control_intervals_N.txt":
 ```
@@ -236,6 +237,7 @@ Below we present the list of files with brief description of their formats.
 	binsize   bin_error/initial_error
 ```
 
+
    "bin_error" is the statistical error calculated after data binning, "initial_error" is the ordinary statistical error. This ratio, in the limit of large binsize, is equal to
     autocorrelation length.
 	 
@@ -247,6 +249,7 @@ Below we present the list of files with brief description of their formats.
 ```
 	frequency(in units of T)  resolution_function
 ```
+
 
    Resolution functions are saved only for the final value of regularization parameter lambda (when it's tuned to get some fixed value of relative error).
    
@@ -269,6 +272,7 @@ Below we present the list of files with brief description of their formats.
 ```   
     center_of_resolution_function  resolution_width(as it was in the  calculation of D functional)  position_of_the_maximum_of_resolution_function  width=(start-stop)/2  spectral_function  error  start  stop
 ```
+
 
    Start and stop points are the half-max points before and after the maximum of resolution function.
 
