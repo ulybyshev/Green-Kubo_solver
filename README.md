@@ -210,7 +210,7 @@ Below we present the list of files with brief description of their formats.
 ```
 	time  correlator_Re   error_Re
 ```
-
+   
 
    Format of "correlator_control_intervals_N.txt":
 ```
