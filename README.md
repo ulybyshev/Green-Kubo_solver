@@ -195,7 +195,12 @@ In the output all dimensional quantities are in the units of temperature.
 Below we present the list of files with brief description of their formats.
 
 1. "correlator_control_pre_N.txt"
-   Preliminary values of correlator for N-th bin (before averaging over intervals or neglecting some data points). Format:
+
+
+   Preliminary values of correlator for N-th bin (before averaging over intervals or neglecting some data points).
+
+
+   Format:
 ```
 	#time  correlator_Re   error_Re
 ```
