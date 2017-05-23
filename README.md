@@ -50,13 +50,13 @@ by the user then the number of bins is set up automatically on the basis of auto
 	
 -i : This options turns off the imaginary part of correlator. In this case the input file is organized in two columns.
 
-Depending on the kernel, the program performs symmetrization or antisymmetrization of the input data with respect to the half of Euclidean time.
+Depending on the kernel, the program performs symmetrization or antisymmetrization of the input data with respect to the half of inverse temperature.
  If kernel_switcher=5 (see below), it  performs antisymmetrization, in all other cases  symmetrization is performed. 
 
 
 ### Additional options in the regime without data binning:
 
--c  filename.txt : File with correlator  (it is assuned that the correlator is symmetrical/antisymmetrical with respect to the half of Euclidean time).
+-c  filename.txt : File with correlator  (it is assuned that the correlator is symmetrical/antisymmetrical with respect to the half of inverse temperature).
 ```
 	1    correlator    correlator_error 
 	2 ....
@@ -83,71 +83,87 @@ or the kernel in Green-Kubo relation. Generally, the file consists of the follow
     parameter_name
     parameter_value (or several values if needed)
 ```
-Below we describe all possible parameters:
+All dimensional parameteres are assumed to be in units of temperature.
 
-  "kernel_switcher"
-    possible values:  
-    ==0 for conductitvity kernel
-    ==1 for Density of States kernel	
-    ==2 for Density of States kernel taking into account discrete time
-    ==3 the same as for conductivity but with cosh(omega*beta/2) in denominator
-    ==4 lattice version of conductitvity kernel
-    ==5 odd kernel for Density of States
+### The list of all possible parameters.
+
+1) "kernel_switcher" : changes the kernel in Green-Kubo relations.
+possible values:  
+
+    0 : kernel for conductivity
+    1 : kernel for Density of States (DOS is assumed to be symmetrical with respect to zero and the correlator is symmetrical with respect to half of inverse temperature)
+    2 : kernel for Density of States kernel taking into account discrete Euclidean time
+    4 : lattice version of the kernel for conductitvity
+    5 : odd kernel for Density of States (is used to compute antisymmetrical woth respect to zero part of DOS, the correlator is assumed to be antisymmetrical with respect to half of inverse temperature)
  
   
-  "accuracy"
-    floating point number: relative accuracy of numerical integration
+2)  "accuracy"
+Parameter value is some floating point number. It defines the relative accuracy of numerical integration.
 
-  "N_int_steps"
-    integer: maxium number of steps in numberical integration
+3)  "N_int_steps"
+Parameter value is some integer number. It defines maxium number of steps in numerical integration.
 
-  "delta_plot_step"
-    floating point number: the step size in the plots for resolution functions
+4)  "delta_plot_step"
+Parameter value is floating point number. It defines the step size in the plots for resolution functions.
   
-  "delta_plot_limit"
-    floating point number: maximal value of frequency in the plots for resolution functions
+5)  "delta_plot_limit"
+Parameter value is floating point number. It defines the maximal value of frequency in the plots for resolution functions.
     
-  "center_start"
-    floating point number: starting value of the center of resolution function
+6)  "center_start"
+Parameter value is floating point number. It defines the minimal value of the center of resolution function.
   
-  "center_stop"
-    floating point number: maximal value of the center of resolution function
+7)  "center_stop"
+Parameter value is floating point number. It defines the maximal value of the center of resolution function.
   
-  "center_delta"
-    floating point number: the step size for the center of resolution functions 
+8)  "center_delta"
+Parameter value is floating point number. It defines the step size for the center of resolution functions.
   
-  "lambda"
-    format:
+9)  "lambda"
+With the help of this parameter it's possible to tune the regularization procedure.
+General format of the second strong:
+```
     integer_number     floating_point_parameter
-	integer_number:  
-	==0 without regularization (thus no floating point parameter)
-	==+-1 regularization by addition of covariance matrix:  (1-\lambda) S_{ij} 
-	    +1 floating_point_parameter=lambda
-	    -1 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
-	==+-2 regularization by neglecting all eigenvalues of W kernel less than \lambda  (Truncated SVD decomposition)
-	    +2 floating_point_parameter=lambda
-	    -2 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
-	==3 regularization by Tikhonov filtering in SVD decomposition  (minimize |K x-y| +lambda |x| (suppress fluctuations in spectral funtions)
-	    +3 floating_point_parameter=lambda
-	    -3 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
-	==4 alternative regularization through Tikhonov filtering in SVD  decomposition   (minimize  |K x-y| +lambda |Kx| (suppress fluctuations in correlator obtained from calculated spectral function)
-	    +4 floating_point_parameter=lambda
-	    -4 floating_point_parameter=average relative error  (and  lambda is choosen automatically)
+```
+Possible alues of the integer number (it defines the type of regularization):  
+0 : without regularization (thus no floating point parameter)
 
-  "flag_exclude_corr" additional regularization by neglecting some points in correlator or by averaging over some intervals in correlator
-    format:  
-    ==0 no additional regularization
-    ==1 additional regularization is introduced: all points except the listed ones are neglected
-	format:
-	    1   N_{valid_timeslices}    i1   i2  .....  i_{N_{valid}}  
-	    (numbers should be sorted in ascending order, contact term in correlator is under number 0, so valid timeslices start from 1 and proceed till Nt)
-    ==2 the same as in the previous case, but correlator is averaged over intervals between listed points
-	    2   N_{intervals}    start1   stop1  .....  start{N_{intervals}}  stop{N_{intervals}}  
-		    averaging is performed in each  intevals over points t=startN...stopN  (including the 1st and the last point) 
++-1 : regularization by addition of covariance matrix:  (1-\lambda) S_{ij}.
++-2 : regularization by neglecting all eigenvalues of W-kernel  which are less than \lambda (Truncated SVD decomposition).
++-3 : regularization by Tikhonov filtering in SVD decomposition.
++-4 : alternative variant of Tikhonov filtering in SVD  decomposition (more smooth).
+
+In all cases if the integer parameter is positive then the floating point parameter=\lambda. If it's negaive then the floating point parameter=average relative error
+and  lambda is choosen automatically.
+
+
+10) "flag_exclude_corr"
+Defines the additional regularization by neglecting some points in correlator or by averaging over some intervals in Euclidean time.
+Format of the second string: 
+```
+    integer_number   additional_parameters....
+```
+Possible values of the integer number:
+0 : no additional regularization (thus no further parameters)
+
+1 : additional regularization is introduced: all points except the listed ones are neglected
+Thus the  additional parameters in the second string define the list of the points which are taken into account.
+```
+	    1   N    i_1   i_2  .....  i_N 
+```
+N is the number of valid timeslices.
+Numbers should be sorted in ascending order, contact term in correlator is under number 0, so valid timeslices can start from 1 and end at i_N=Nt.
+
+2 : the correlator is averaged over intervals between listed points.
+The additional parameters define these intervals:
+```
+	    2   N   start_1   stop_1  .....  start_N  stop_N
+```
+N is the number of intervals. Averaging is performed in each  inteval  over points t=start_i...stop_i  (including the first and the last point).
     
 
-example of the file with parameters
+### Example of the file with parameters
 
+```
 kernel_switcher
 1
 accuracy
@@ -165,17 +181,17 @@ center_stop
 center_delta
 0.5
 lambda
--4  0.1
+-3  0.1
 flag_exclude_corr
 1  10  1 2 5 10 15 20 25 30 35 40
+```
 
-all dimensional parameteres are in the units of temperature
 
-
-Default values of parameters:
-regularization type:				-4
+### Default values of parameters.
+```
+regularization type:				-3
 relative error:   				0.05
-value of regularization constant lambda:	1.0e-06
+value of regularization constant (\lambda):	1.0e-06
 kernel type					1
 accuracy 					1.0e-12
 number of steps in numerical integration 	1000000
@@ -184,9 +200,9 @@ delta_plot_limit				Nt *2.0
 center_start 					0.0
 center_delta 					1.0
 center_stop=					Nt
+```
 
-___________________________________________________________
-OUTPUT
+## Output
 
 all dimensional quantities are in the units of temperature
 

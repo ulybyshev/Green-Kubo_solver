@@ -20,7 +20,7 @@
 
 //default values
 
-#define  DEFAULT_FLAG_REGULARIZATION	-4
+#define  DEFAULT_FLAG_REGULARIZATION	-3
 #define  DEFAULT_RELATIVE_ERROR    	0.05
 #define  DEFAULT_LAMBDA 		1.0e-06
 #define  DEFAULT_FLAG_MODEL   		0
