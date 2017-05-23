@@ -207,6 +207,7 @@ Below we present the list of files with brief description of their formats.
    Final values of correlator for N-th bin (after averaging over intervals or neglecting some data points, if this type of regularization was ordered in parameters file).
  
    Format of "correlator_control_fin_N.txt":
+
 ```
 	time  correlator_Re   error_Re
 ```
