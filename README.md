@@ -91,11 +91,11 @@ All dimensional parameteres are assumed to be in units of temperature.
 
 Possible values:  
 
-..* 0 : kernel for conductivity
-..* 1 : kernel for Density of States (DOS is assumed to be symmetrical with respect to zero and the correlator is symmetrical with respect to half of inverse temperature)
-..* 2 : kernel for Density of States kernel taking into account discrete Euclidean time
-..* 4 : lattice version of the kernel for conductitvity
-..* 5 : odd kernel for Density of States (is used to compute antisymmetrical woth respect to zero part of DOS, the correlator is assumed to be antisymmetrical with respect to half of inverse temperature)
+* 0 : kernel for conductivity
+* 1 : kernel for Density of States (DOS is assumed to be symmetrical with respect to zero and the correlator is symmetrical with respect to half of inverse temperature)
+* 2 : kernel for Density of States kernel taking into account discrete Euclidean time
+* 4 : lattice version of the kernel for conductitvity
+* 5 : odd kernel for Density of States (is used to compute antisymmetrical woth respect to zero part of DOS, the correlator is assumed to be antisymmetrical with respect to half of inverse temperature)
  
   
 "accuracy" : Parameter value is some floating point number. It defines the relative accuracy of numerical integration.
