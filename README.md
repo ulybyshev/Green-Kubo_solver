@@ -200,65 +200,94 @@ Below we present the list of files with brief description of their formats.
 
    Format:
 ```
-	#time  correlator_Re   error_Re
+	time  correlator_Re   error_Re
 ```
 2. "correlator_control_intervals_N.txt"  and  "correlator_control_fin_N.txt" 
-   Final values of correlator for N-th bin (after averaging over intervals or neglecting some data points, if this type of regularization was ordered in parameters file)
+
+   Final values of correlator for N-th bin (after averaging over intervals or neglecting some data points, if this type of regularization was ordered in parameters file).
  
+   Format of	"correlator_control_fin_N.txt";
+```
+	time  correlator_Re   error_Re
+```
+
+   Format pf "correlator_control_intervals_N.txt":
+```
+	interval_number	average_correlator_Re  error_Re
+```
+
+3. "cov_matrix_control_pre_N.txt" and "cov_matrix_control_fin.txt" 
+
+   These files contain covariance matrixes for correlators from "correlator_control_pre_N.txt" and "correlator_control_fin_N.txt" (or "correlator_control_intervals_N.txt").
    Format:
-	
-	correlator_control_fin_N.txt 
-	#time  correlator_Re   error_Re
+```
+	C_{11} ..........  C_{1 Nt}
+        ..........................
+	C_{Nt 1} .......  C_{Nt Nt}
+```
+   
+4. "correlataion_study_timeN.txt"
 
-	correlator_control_intervals_N.txt 
-	#interval_number	average_correlator_Re  error_Re
+   The data produced during the calculation of autocorrelation length for N-th time slice.
+   
+   Format:
+```   
+	binsize   bin_error/initial_error
+```
 
-3)	cov_matrix_control_pre_N.txt and cov_matrix_control_fin.txt: 
-	covariance matrix for correlators from correlator_control_pre_N.txt and correlator_control_fin_N.txt (or correlator_control_intervals_N.txt )
-	
-
-
-4)      correlataion_study_timeN.txt
-	input data for calculation of autocorrelation length for N-th time slice.
-	Format:
-	#binsize   bin_error/initial_error
-	
-	bin_error is statistical error calculated after data binning, initial error is ordinary statistical error. This ratio, in the limit of large binsize, is equal to
-	autocorrelation length.
+   "bin_error" is the statistical error calculated after data binning, "initial_error" is the ordinary statistical error. This ratio, in the limit of large binsize, is equal to
+    autocorrelation length.
 	 
-5)	delta_function_c=_VALUE_T.txt
-	resolution function with center at frequency = _VALUE_ (in units of temperature)
-	Format:
-	#frequency(in units of T)  resolution_function
+5. "delta_function_c=_VALUE_T.txt"
+
+   Resolution function with center at frequency = _VALUE_ (in units of temperature).
+
+   Format:
+```
+	frequency(in units of T)  resolution_function
+```
+   Resolution functions are saved only for the final value of regularization parameter lambda (when it's tuned to get some fixed value of relative error).
+   
+
+6. "rho_final.txt"
+   
+   Final output for spectral function (at final value of regularization parameter lambda).
+   
+   Format:
+```
+	center_of_resolution_function   spectral_function    error
+```
 	
-	resolution functions are saved only for the final value of regularization parameter lambda (when it's tuned to get some fixed value of relative error)
+7. "rho_basic.txt"
 
-6)	rho_final.txt
-	final output for spectral function (at final value of regularization parameter lambda)
-	Format:
-	#center_of_resolution_function   spectral_function    error
-	
-7)      rho_basic.txt
-	the same as rho_final.txt but includes more technical information about resolution functions
-	In case of data blocking this file appears for each block of data separately for the final value of regularization parameter lambda
-	Format:
-	#center_of_resolution_function  resolution_width(as it was in the  calculation of D functional) \\
-	position_of_the_maximum_of_resolution_function  width=(start-stop)/2  spectral_function  error  start  stop
+   This file is the same as "rho_final.txt" but it includes more technical information about resolution functions (like width, etc.).
+   In case of data blocking this file appears for each block of data separately for the final value of regularization parameter ambda
+   
+   Format:
+```   
+    center_of_resolution_function  resolution_width(as it was in the  calculation of D functional)  position_of_the_maximum_of_resolution_function  width=(start-stop)/2  spectral_function  error  start  stop
+```
 
-	start and stop points are half-max points before and after maximum of resolution function
-	
+   Start and stop points are the half-max points before and after the maximum of resolution function.
 
-8)	rho_lambda_VALUE_avg.txt
-	spectral function (at some value of regularization parameter lambda in the vicinity of the final one)
-	Format:
-	#center_of_resolution_function   spectral_function    error
+8. "rho_lambda_VALUE_avg.txt"
 
+   Spectral function at some value of regularization parameter lambda in the vicinity of the final one.
 
-9)      rho_lambda.txt
-	dependence of recolution function on regularization parameter lambda
-	Format:
-	#value_of_lambda	rho_for_c=0.000e+00 T	rho_error  ...... (for all positions of the center of resolution functions)
-	
+   Format:
+```
+	center_of_resolution_function   spectral_function    error
+```
+
+9. "rho_lambda.txt"
+
+   Dependence of resolution function on regularization parameter lambda.
+
+   Format:
+
+```   
+	value_of_lambda	rho_for_c=0.000e+00 T	rho_error  ...... (for all positions of the center of resolution functions)
+```	
 	
 	
 
