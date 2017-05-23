@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/50623371.svg)](https://zenodo.org/badge/latestdoi/50623371)
+
 # Solver for Green-Kubo relations
 
 The programs performs analytical continuation from Euclidean to real time through the solution of Green-Kubo relation. 
@@ -184,21 +186,23 @@ delta_plot_step					0.25
 delta_plot_limit				Nt *2.0
 center_start 					0.0
 center_delta 					1.0
-center_stop=					Nt
+center_stop					Nt
 ```
 
 ## Output
 
-all dimensional quantities are in the units of temperature
+In the output all dimensional quantities are in the units of temperature.
+Below we present the list of files with brief description of their formats.
 
-1)	correlator_control_pre_N.txt
-	Preliminary values of correlator for N-th bin (before averaging over intervals or neglecting some data points)
-	Format:
+1. "correlator_control_pre_N.txt"
+   Preliminary values of correlator for N-th bin (before averaging over intervals or neglecting some data points). Format:
+```
 	#time  correlator_Re   error_Re
-
-2)	correlator_control_intervals_N.txt   of  correlator_control_fin_N.txt 
-	Final values of correlator for N-th bin (after averaging over intervals or neglecting some data points, if this type of regularization was ordered in parameters file)
-	Format:
+```
+2. "correlator_control_intervals_N.txt"  and  "correlator_control_fin_N.txt" 
+   Final values of correlator for N-th bin (after averaging over intervals or neglecting some data points, if this type of regularization was ordered in parameters file)
+ 
+   Format:
 	
 	correlator_control_fin_N.txt 
 	#time  correlator_Re   error_Re
