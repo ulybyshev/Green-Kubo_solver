@@ -33,9 +33,11 @@ the file which contains these parameters can be defined here.  Without this opti
 The format of the file with parameters is decribed below.
 
 ### Additional options in the regime with data binning
+
     -b Nb : Nb is positive integer number, it sets the number of bins for the data binning procedure. If this number is not provided 
       by the user then the number of bins is set up automatically on the basis of autocorrelation length measurement.
     -c filename.txt : file with full ensemble of full-time Euclidean correlators. File format:
+
 ```
 	0    		Real_Part   Imaginary_Part
 	1    		....
