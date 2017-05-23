@@ -196,9 +196,7 @@ Below we present the list of files with brief description of their formats.
 
 1. "correlator_control_pre_N.txt"
 
-
    Preliminary values of correlator for N-th bin (before averaging over intervals or neglecting some data points).
-
 
    Format:
 ```
