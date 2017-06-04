@@ -123,7 +123,8 @@ bool sample_sequence<element>::autocorrelation_calc(int flag_output, FILE* file_
     y=new element[N_points];
     
 
-    fprintf(file_output, "#binsize\tbin_error/initial_error\n"); fflush(file_output);
+    if(flag_output)
+    {fprintf(file_output, "#binsize\tbin_error/initial_error\n"); fflush(file_output);}
     
     int count_points;
     for(count_points=2;count_points<=N_points; count_points++)

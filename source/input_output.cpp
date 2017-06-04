@@ -387,7 +387,7 @@ int input_raw_data(FILE* file_in_current) {
   fclose(file_out);
   free(avg);
   free(err);
- }
+}
 
   
   free(temp_g);
@@ -573,18 +573,22 @@ void get_jack_sample(correlator *C_jack, int jack_sample) {
 //defines automatically binsize for blocking on the basis of autocorrelation length calculation
 bool input_data_analysis(initial_data_description* D)
 {
-    int N_histories, delta, count_history;
+    int N_histories, delta, delta_output, count_history;
     bool result=true;
+
+    N_histories=Nt_2;
+    delta=1;
+
     if(Nt_2<5)
     {
-	N_histories=Nt_2;
-	delta=1;
+	delta_output=1;
     }
     else
     {
-	N_histories=5;
-	delta=Nt_2/5;
+	delta_output=Nt_2/5;
     }
+
+
     
     D->format(N_histories);
     for(count_history=0; count_history<N_histories; count_history++)
@@ -614,20 +618,36 @@ bool input_data_analysis(initial_data_description* D)
 	
 	FILE* file_output;
 	char filename[1024];
-	sprintf(filename, "correlation_study_time%d.txt", D->times[count_history]);
-	file_output=fopen_control(filename, "w");
-	if(!corr_history[count_history].autocorrelation_calc(1, file_output))
+	
+	int corr_res;
+	if(cur_time%delta_output==0)
+	{
+	    sprintf(filename, "correlation_study_time%d.txt", D->times[count_history]);
+	    file_output=fopen_control(filename, "w");
+	    corr_res=corr_history[count_history].autocorrelation_calc(1, file_output);
+	}
+	else
+	{
+	    corr_res=corr_history[count_history].autocorrelation_calc(0);
+	}	
+	
+	if(!corr_res)
 	{
 	    result=false;
-	    fclose(file_output);
+	    if(cur_time%delta_output==0)
+	    {
+		fclose(file_output);
+	    }
 	    break;    
 	}
 	else
 	{
 	    D->corr_lengths[count_history]=corr_history[count_history].corr_length;
 	}
-	fclose(file_output);
-	
+	if(cur_time%delta_output==0)
+	{
+	    fclose(file_output);
+	}
     }
     if(result)
     {
@@ -656,6 +676,42 @@ bool input_data_analysis(initial_data_description* D)
 	    num_jack_samples=N_BINS_MINIMUM;
 	}
     }
+
+
+ //output of full average and error 
+{ 
+  int i,j;
+  double *avg=(double *)calloc(Nt_2,sizeof(double));
+  double *err=(double *)calloc(Nt_2,sizeof(double));
+  for(i=0;i<Nt_2;i++) {
+    avg[i]=0.0;
+    err[i]=0.0;
+  }
+  
+   for(i=1;i<=Nt_2;i++) {
+    for(j=0;j<=n_conf;j++) {
+      avg[i-1]+=raw_data[(i-1)+(j-1)*Nt_2];
+    }
+    avg[i-1]=avg[i-1]/((double)n_conf);
+  }
+  
+  for(i=1;i<=Nt_2;i++) {
+    for(j=0;j<=n_conf;j++) {
+      err[i-1]+=(raw_data[(i-1)+(j-1)*Nt_2]-avg[i-1])*(raw_data[(i-1)+(j-1)*Nt_2]-avg[i-1]);
+    }
+    err[i-1]=sqrt(err[i-1]/((double)n_conf*(n_conf-1.0)));
+  }
+  FILE* file_out=fopen_control("correlator_control_full_autocorr.txt","w");
+  fprintf(file_out,"#time\t correlator_Re\t  error_Re (taking into account autocorrelation)\n");
+
+  for(i=0;i<=Nt_2-1;i++) {
+    fprintf(file_out,"%d\t%.15le\t%.15le\n", i+1, avg[i], err[i]*sqrt(1.0+2.0*D->corr_lengths[i]));fflush(file_out);
+  }
+  fclose(file_out);
+  free(avg);
+  free(err);
+}
+
     
     delete[]corr_history;
     return result;
