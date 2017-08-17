@@ -23,5 +23,9 @@ double kernel_DOS_odd(double omega, int beta, int euclidean_time);
 double kernel_lattice_DOS_odd(double omega, int  beta, int euclidean_time);
 
 
+
+
 //for mesonic correlators
 double kernel_meson(double omega, int  beta, int euclidean_time);
+
+double kernel_V(double omega, int  beta,  int euclidean_time);

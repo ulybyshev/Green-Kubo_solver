@@ -31,6 +31,8 @@ double kernel_function(double omega, int beta, int euclidean_time)
 	    return lattice_kernel_conductivity(omega, beta, euclidean_time);
 	case 5:
 	    return kernel_DOS_odd(omega, beta, euclidean_time);
+	case 6:
+	    return kernel_V(omega, beta, euclidean_time);
 	default:
 	    return kernel_conductivity(omega, beta, euclidean_time);
     }
@@ -95,3 +97,9 @@ double kernel_lattice_DOS_odd(double omega, int beta, int  euclidean_time)
     return (lattice_exp(-omega, euclidean_time)* (1.0+lat_exp_beta) - lattice_exp(omega, euclidean_time)* (1.0+lat_exp_beta1))/ ( ( 1.0+ lat_exp_beta1 ) *(1.0+ lat_exp_beta ) );
 }
 
+
+
+double kernel_V(double omega, int  beta,  int euclidean_time)
+{
+    return (omega*omega)*(1.0/((1.0-exp(-omega*(double)beta))/(1.0+exp(-omega*(double)beta))))*(exp(omega*(-(double)euclidean_time))+exp(omega*((double)euclidean_time-(double)beta)))/(1.0-exp(-omega*(double)beta));
+}
