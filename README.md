@@ -29,7 +29,9 @@ in this regime the covariance matrix of the correlator should be provided).
 ### Common options for both regimes:
 
 -t  Nt : Nt is positive integer number equal to half the number of Euclidean timeslices in the initial correlator. 
+
 -o path : With this option the path where the output data is placed can be defined.
+
 -p filename.txt :  If one wants to tune the internal parameters of the algorithm, the path to 
 the file which contains these parameters can be defined here.  Without this option all parameters are equal to their default values. 
 The format of the file with parameters is decribed below.
@@ -38,6 +40,7 @@ The format of the file with parameters is decribed below.
 
 -b Nb : Nb is a positive integer which sets the number of bins for the data binning procedure. If this number is not provided 
 by the user then the number of bins is set up automatically on the basis of autocorrelation length measurement.
+
 -c filename.txt : file with full Monte Carlo time series for the Euclidean correlator. File format:
 
 ```
@@ -68,6 +71,7 @@ Depending on the kernel, the program performs symmetrization or antisymmetrizati
 ```
 -e : If this option exists, the input of errors is canceled (only two columns in the file with correlator data).
 In this case the error estimation and the automated procedures for choosing the regularization parameter don't work.
+
 -m  filename.txt : File with covariance matrix.   The input of covariance matrix is optional. The program can work without it 
 but then the regularization with covariance matrix doesn't work. File format:
 
