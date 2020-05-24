@@ -49,9 +49,11 @@ by the user then the number of bins is set up automatically on the basis of auto
 	2    		....
 	....................
 	2 Nt-1		....
-	(empty line)
-	......(data for the next configuration in the same format)
+	0.....(data for the next configuration in the same format)
 ```
+
+Note that the data for 0th time slice (zero separation between the source and the sink) is discarded,
+as it often contains non-universal divergent and contact terms 
 	
 -i : This options turns off the imaginary part of the correlator. In this case the input file is organized in two columns.
 
@@ -69,6 +71,10 @@ Depending on the kernel, the program performs symmetrization or antisymmetrizati
 	4 ....
 	Nt ....
 ```
+
+Note that in this regime the first row in the data file corresponds to the first time slice, i.e. Euclidean correlator
+in which the source and the sink are separated by ONE lattice spacing. 
+
 -e : If this option exists, the input of errors is canceled (only two columns in the file with correlator data).
 In this case the error estimation and the automated procedures for choosing the regularization parameter don't work.
 
@@ -94,7 +100,7 @@ All dimensional parameteres are assumed to be in units of temperature.
 ### The list of all possible parameters.
 
 "kernel_switcher" : Changes the kernel in Green-Kubo relations. Possible values:  
-  * 0 : kernel for conductivity
+  * 0 : kernel for conductivity, \pi/w cosh(w*(\tau - \beta/2))/\sinh(w*\beta/2)
   * 1 : kernel for Density of States (DOS is assumed to be symmetrical with respect to zero and the correlator is symmetrical with respect to half of inverse temperature)
   * 2 : kernel for Density of States kernel taking into account discrete Euclidean time
   * 4 : lattice version of the kernel for conductitvity
@@ -126,9 +132,9 @@ All dimensional parameteres are assumed to be in units of temperature.
   *    +-2 : regularization by neglecting all eigenvalues of W-kernel  which are less than \lambda (Truncated SVD decomposition).
   *    +-3 : regularization by Tikhonov filtering in SVD decomposition.
   *    +-4 : alternative variant of Tikhonov filtering in SVD  decomposition (more smooth).
-  In all cases if the integer parameter is positive then the floating point parameter=\lambda. If it's negaive then the floating point parameter=average relative error
+  In all cases if the integer parameter is positive then the floating point parameter=\lambda. 
+  If it's negaive then the floating point parameter=desired average relative error in the output spectral function
   and  lambda is choosen automatically.
-
 
 "flag_exclude_corr" : Defines the additional regularization by neglecting some points in correlator or by averaging over some intervals in Euclidean time.
   Format of the second string: 
@@ -195,7 +201,7 @@ center_stop					Nt
 
 ## Output
 
-In the output all dimensional quantities are in the units of temperature.
+In the output the frequency is in the units of temperature.
 Below we present the list of files with a brief description of their formats.
 
 1. "correlator_control_pre_N.txt"
