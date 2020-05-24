@@ -86,6 +86,7 @@ but then the regularization with covariance matrix doesn't work. File format:
         ..........................
 	C_{Nt 1} .......  C_{Nt Nt}
 ```
+Note that in the data binning regime the covariance matrix will be automatically calculated from the Monte-Carlo data
 
 ## File with parameters
 
