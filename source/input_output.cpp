@@ -119,47 +119,47 @@ bool input_correlator_matrix(FILE* file_in_current, FILE* file_in_matrix, correl
     double par_double;
     FILE* file_out;
 
-
     for(t=1;t<=pC->N_full_points;t++)
     {
-	fscanf(file_in_current, "%le", &par_double);
-	fscanf(file_in_current, "%le", &(pC->corr_full[t-1]));
-	if(flag_error_corr_input)
-		fscanf(file_in_current, "%le", &(pC->error_full[t-1]));
-	else
-		pC->error_full[t-1]=0.0;
+		fscanf(file_in_current, "%le", &par_double);
+		fscanf(file_in_current, "%le", &(pC->corr_full[t-1]));
+		if(flag_error_corr_input)
+			fscanf(file_in_current, "%le", &(pC->error_full[t-1]));
+		else
+			pC->error_full[t-1]=0.0;
     }
 
     file_out=fopen_control("correlator_control_pre.txt","w");
     fprintf(file_out,"#time\t correlator_Re\t  error_Re\n");
     for(t=0;t<pC->N_full_points;t++)
     {
-	fprintf(file_out,"%d\t%.15le\t%.15le\n", t+1, pC->corr_full[t], pC->error_full[t]);fflush(file_out);
+		fprintf(file_out,"%d\t%.15le\t%.15le\n", t+1, pC->corr_full[t], pC->error_full[t]);
+		fflush(file_out);
     }
     fclose(file_out);
 
     for(i=1;i<=pC->N_full_points;i++)
-    for(t=1;t<=pC->N_full_points;t++)
-     {
-	if(flag_covariance_matrix_input)
-	    fscanf(file_in_matrix, "%le", &par_double);
-	else
-	    par_double=0.0;
-	gsl_matrix_set(pC->S_full, i-1, t-1, par_double);
-    }
-
+    	for(t=1;t<=pC->N_full_points;t++)
+    	{
+			if(flag_covariance_matrix_input)
+	    		fscanf(file_in_matrix, "%le", &par_double);
+			else
+	    		par_double=0.0;
+			gsl_matrix_set(pC->S_full, i-1, t-1, par_double);
+    	}
 
     if(flag_covariance_matrix_input)
     {
-	file_out=fopen_control("cov_matrix_control_pre.txt","w");
-	for(i=0;i<pC->N_full_points;i++){
-	for(t=0;t<pC->N_full_points;t++)
-	{
-	    fprintf(file_out,"%.15le\t", gsl_matrix_get(pC->S_full, i,t));fflush(file_out);
-	}
-	fprintf(file_out,"\n");
-	}
-	fclose(file_out);
+		file_out=fopen_control("cov_matrix_control_pre.txt","w");
+		for(i=0;i<pC->N_full_points;i++)
+		{
+			for(t=0;t<pC->N_full_points;t++)
+			{
+	    		fprintf(file_out,"%.15le\t", gsl_matrix_get(pC->S_full, i,t));fflush(file_out);
+			}
+			fprintf(file_out,"\n");
+		}
+		fclose(file_out);
     }
   
   //conversion to real arrays taken into account only certain timeslices or intervals
@@ -267,64 +267,41 @@ else//just neglecting points (the case when we save full correlator is also here
     return true;
 }
 
-int input_raw_data(FILE* file_in_current) {
-
-  int t_count,conf_count,t;
-  double re_g,im_g;
-  int check;
+int input_raw_data(FILE* file_in_current) 
+{
+	int t_count,conf_count,t;
+	double re_g,im_g;
+	int check;
   
-  double *temp_g=(double *)calloc(MAXT*MAXCONF,sizeof(double));
-  if(temp_g==NULL) {
-    fprintf(stderr,"error allocating memory for raw data!\n");
-    exit(1);
-  }
-    
-  conf_count=0;
-  int Nt=2*Nt_2;
-  while(1) {
-    t_count=0;
-    while(t_count<Nt) 
-    {
-	if(flag_imag_part_input==true)
+	double *temp_g=(double *)calloc(MAXT*MAXCONF,sizeof(double));
+	if(temp_g==NULL)
 	{
-         if(fscanf(file_in_current,"%d%lf%lf",&t,&re_g,&im_g)==3) 
-	    {
-		temp_g[t_count+conf_count*Nt]=re_g;
-		SKIP_REMAINING_CHARS(file_in_current);
-		t_count++;
-    	    }
-    	    else 
-    	    {
-		fprintf(stderr,"error for config %d, time %d: %d, %f %f\n",conf_count,t_count,t,re_g,im_g);
-		exit(1);
-    	    }
-	}
-	else
-	{
-         if(fscanf(file_in_current,"%d%lf",&t,&re_g)==2) 
-	    {
-		im_g=0.0;
-		temp_g[t_count+conf_count*Nt]=re_g;
-		SKIP_REMAINING_CHARS(file_in_current);
-		t_count++;
-    	    }
-    	    else 
-    	    {
-		fprintf(stderr,"error for config %d, time %d: %d, %f %f\n",conf_count,t_count,t,re_g,im_g);
-		exit(1);
-    	    }
-	}
-    }
-    conf_count++;
+    	fprintf(stderr,"error allocating memory for raw data!\n");
+    	exit(1);
+  	};
     
-    SKIP_BARRIER(file_in_current);
-    if((check = fgetc(file_in_current)) == EOF)  {
-      break;
-    }
-    else {
-      ungetc(check,file_in_current);
-    }
-  }
+  	conf_count=0;
+  	int Nt=2*Nt_2;
+  	
+  	int ts = 0, t0;
+  	char tstr[512];
+  	
+  	while(fgets(tstr, 512, file_in_current)!=NULL && ts<MAXT*MAXCONF)
+  	{
+  		//printf("%s",tstr);
+  		sscanf(tstr, "%d%lf", &t0, &re_g);
+  		printf("\t%02i\t%+2.4E\n", t0, re_g);
+  		temp_g[ts] = re_g;
+  		ts++;
+	};
+	printf("\n");
+	conf_count = ts/Nt;
+	if(ts%Nt!=0)
+	{
+		fprintf(stderr, "The number of lines %i does not match the integer number of configurations with Nt=%i", ts, Nt);	fflush(stdout);
+		fprintf(stdout, "The number of lines %i does not match the integer number of configurations with Nt=%i", ts, Nt);	fflush(stderr);
+	};
+	printf("\n\t >> \x1b[1;35m %i configurations in total \x1b[0m\n\n", conf_count);
   
   //set parameters
   n_conf=conf_count;
@@ -387,6 +364,8 @@ int input_raw_data(FILE* file_in_current) {
   fclose(file_out);
   free(avg);
   free(err);
+  
+  printf("Bye from input_raw_data!!!\n"); fflush(stdout);
 }
 
   
