@@ -343,14 +343,14 @@ int input_raw_data(FILE* file_in_current)
   }
   
    for(i=1;i<=Nt_2;i++) {
-    for(j=0;j<=n_conf;j++) {
+    for(j=1;j<=n_conf;j++) {
       avg[i-1]+=raw_data[(i-1)+(j-1)*Nt_2];
     }
     avg[i-1]=avg[i-1]/((double)n_conf);
   }
   
   for(i=1;i<=Nt_2;i++) {
-    for(j=0;j<=n_conf;j++) {
+    for(j=1;j<=n_conf;j++) {
       err[i-1]+=(raw_data[(i-1)+(j-1)*Nt_2]-avg[i-1])*(raw_data[(i-1)+(j-1)*Nt_2]-avg[i-1]);
     }
     err[i-1]=sqrt(err[i-1]/((double)n_conf*(n_conf-1.0)));
